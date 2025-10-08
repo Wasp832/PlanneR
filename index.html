@@ -1,942 +1,855 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Assignment Planner</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            -webkit-font-smoothing:antialiased;
-            -moz-osx-font-smoothing:grayscale;
-            color: #e0e0e0;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Assignment Planner</title>
+  <style>
+    /* ========== base ========== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html,body { height: 100%; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);
+      color: #e0e0e0;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height: 1.35;
+      padding-bottom: 40px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
 
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+    /* ========== home view & header ========== */
+    #homeView {
+      background: #2d2d44;
+      border-radius: 18px;
+      padding: clamp(18px, 3.2vw, 40px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    }
 
-        /* Home View - Calendar */
-        #homeView {
-            background: #2d2d44;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-        }
+    .calendar-header { text-align: center; margin-bottom: clamp(10px, 2.2vw, 30px); }
+    .calendar-header h1 {
+      color: #00d4ff;
+      font-size: clamp(1.4rem, 2.6vw, 2.4rem);
+      margin-bottom: 8px;
+    }
 
-        .calendar-header { text-align: center; margin-bottom: 30px; }
-        .calendar-header h1 { color: #00d4ff; font-size: 2.5em; margin-bottom: 10px; }
+    .month-nav { display:flex; gap:12px; justify-content:center; align-items:center; margin-top: 8px; }
+    .month-nav button {
+      background:#00d4ff; color:#1a1a2e; border:none; padding:10px 16px; border-radius:8px;
+      cursor:pointer; font-weight:600; transition: background .18s, transform .12s;
+    }
+    .month-nav button:hover { background:#00b8e6; transform: translateY(-2px); }
+    .month-nav span {
+      color: #e0e0e0; font-weight:700; min-width:120px; text-align:center;
+      font-size: clamp(.95rem, 1.6vw, 1.35rem);
+    }
 
-        .month-nav {
-            display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 15px;
-        }
-        .month-nav button {
-            background: #00d4ff; color: #1a1a2e; border: none; padding: 10px 20px; border-radius: 8px;
-            cursor: pointer; font-size: 1em; transition: background 0.3s; font-weight: 600;
-        }
-        .month-nav button:hover { background: #00b8e6; }
-        .month-nav span {
-            font-size: 1.5em; font-weight: bold; color: #e0e0e0; min-width: 200px; text-align: center;
-        }
+    /* ========== calendar grid (responsive squares) ========== */
+    .cal-modern {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(36px, 1fr));
+      gap: clamp(6px, 1vw, 12px);
+      margin-top: clamp(10px, 2vw, 24px);
+    }
+    .cal-modern .day-label {
+      text-align:center; font-weight:700; color:#00d4ff;
+      padding: clamp(6px, 0.8vw, 12px);
+      font-size: clamp(.7rem, 1.2vw, .95rem);
+    }
 
-        .cal-modern {
-            display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 20px;
-        }
-        .cal-modern .day-label { text-align:center; font-weight:bold; color:#00d4ff; padding:15px; font-size:1em; }
-        .cal-modern .day {
-            aspect-ratio: 1; display:flex; align-items:center; justify-content:center; background:#1a1a2e;
-            border-radius:12px; cursor:pointer; transition: all 0.3s; font-size:1.1em; font-weight:500;
-            position:relative; color:#e0e0e0;
-        }
-        .cal-modern .day:hover { background:#00d4ff; color:#1a1a2e; transform:scale(1.05); }
-        .cal-modern .day.today { background:#ff6b6b; color:white; font-weight:bold; }
-        .cal-modern .day.has-events::after {
-            content:''; position:absolute; bottom:8px; width:6px; height:6px; background:#00d4ff; border-radius:50%;
-        }
-        .cal-modern .day.empty { background:transparent; cursor:default; }
+    /* keep square tiles with aspect-ratio */
+    .cal-modern .day {
+      aspect-ratio: 1 / 1;
+      display:flex; align-items:center; justify-content:center;
+      background: #1a1a2e; border-radius:12px; color:#e0e0e0;
+      cursor:pointer; transition: all .18s ease; position:relative;
+      font-size: clamp(.85rem, 1.6vw, 1.1rem); font-weight:600;
+    }
+    .cal-modern .day:hover { transform: translateY(-4px); background:#00d4ff; color:#1a1a2e; }
+    .cal-modern .day.today { background:#ff6b6b; color:#fff; }
+    .cal-modern .day.has-events::after {
+      content:''; position:absolute; bottom:8px; width:8px; height:8px; border-radius:50%;
+      background:#00d4ff; box-shadow: 0 0 6px rgba(0,212,255,0.12);
+    }
+    .cal-modern .day.empty { background: transparent; cursor:default; box-shadow:none; }
 
-        /* View Summaries Button (centered) */
-        .summaries-toggle { margin-top: 20px; display: flex; justify-content: center; }
-        .summaries-btn {
-            background: #00d4ff; color: #1a1a2e; border: none; padding: 12px 22px; border-radius: 12px; cursor: pointer;
-            font-weight: 700; font-size: 1em; box-shadow: 0 8px 20px rgba(0, 212, 255, 0.2); transition: transform 0.22s ease, background 0.2s ease;
-        }
-        .summaries-btn:hover { transform: translateY(-3px); background: #00b8e6; }
+    /* ========== summaries toggle (centered) ========== */
+    .summaries-toggle { margin-top: clamp(10px, 2vw, 20px); display:flex; justify-content:center; }
+    .summaries-btn {
+      background:#00d4ff; color:#1a1a2e; border:none; padding: clamp(8px,1.2vw,12px) clamp(14px,2vw,22px);
+      border-radius: 12px; font-weight:800; cursor:pointer; box-shadow: 0 8px 20px rgba(0,212,255,0.18);
+      font-size: clamp(.88rem, 1.6vw, 1rem);
+      transition: transform .16s, background .12s;
+    }
+    .summaries-btn:hover { transform: translateY(-3px); background:#00b8e6; }
 
-        /* Smooth slide / fade area */
-        .summaries-panel { overflow: hidden; max-height: 0; opacity: 0; transition: max-height 420ms cubic-bezier(.2,.9,.2,1), opacity 260ms ease; margin-top: 18px; }
-        .summaries-panel.open { max-height: 1400px; opacity: 1; }
+    /* smooth expand */
+    .summaries-panel {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height .5s cubic-bezier(.2,.9,.2,1), opacity .28s ease;
+      margin-top: 14px;
+    }
+    .summaries-panel.open {
+      max-height: 9999px; /* large so it expands naturally */
+      opacity: 1;
+    }
 
-        /* Week/Month View Section */
-        .view-tabs { display: flex; justify-content: center; gap: 15px; margin-top: 10px; margin-bottom: 10px; padding: 10px; }
-        .view-tab {
-            padding: 10px 20px; background: #1a1a2e; color: #e0e0e0; border: 2px solid #444; border-radius: 8px; cursor: pointer;
-            transition: all 0.3s; font-weight: 600; font-size: 0.95em;
-        }
-        .view-tab:hover { border-color: #00d4ff; }
-        .view-tab.active { background: #00d4ff; color: #1a1a2e; border-color: #00d4ff; }
+    /* ========== tabs + overview ========== */
+    .view-tabs { display:flex; justify-content:center; gap: 12px; margin-top: 8px; margin-bottom: 12px; flex-wrap:wrap; }
+    .view-tab {
+      background:#1a1a2e; color:#e0e0e0; padding:8px 14px; border-radius:8px;
+      border: 2px solid #444; cursor:pointer; font-weight:700; font-size: .95rem;
+    }
+    .view-tab:hover { border-color:#00d4ff; }
+    .view-tab.active { background:#00d4ff; color:#1a1a2e; border-color:#00d4ff; }
 
-        .overview-section { background: #1a1a2e; border-radius: 15px; padding: 18px; margin-top: 6px; }
-        .overview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .overview-header h3 { color: #00d4ff; font-size: 1.2em; }
-        .overview-content { display: none; }
-        .overview-content.active { display: block; }
-        .overview-empty { text-align: center; padding: 30px 10px; color: #666; }
+    .overview-section { background:#1a1a2e; border-radius:12px; padding: 14px; margin-top:6px; }
+    .overview-content { display:none; }
+    .overview-content.active { display:block; }
+    .overview-empty { text-align:center; padding:28px 10px; color:#888; font-size: .95rem; }
 
-        .overview-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
-        .overview-card {
-            background: #2d2d44; border-radius: 12px; padding: 16px; border-left: 5px solid #00d4ff; transition: all 0.3s;
-            cursor: pointer; display:flex; flex-direction:column; justify-content:space-between;
-        }
-        .overview-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
-        .overview-card.casual { border-left-color: #4caf50; }
-        .overview-card.moderate { border-left-color: #ffaa00; }
-        .overview-card.important { border-left-color: #ff6b6b; }
-        .overview-card.urgent { border-left-color: #ff0000; }
-        .overview-card.overdue { border-left-color: #ff4444; }
+    /* grid of cards that expands naturally (no internal scroll) */
+    .overview-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
 
-        .overview-card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
-        .overview-card-title h4 { color: #e0e0e0; font-size:1.05em; margin-bottom:6px; }
-        .overview-card-title p { color:#aaa; font-size:0.9em; line-height:1.2; }
-        .overview-card-date {
-            background: rgba(0, 212, 255, 0.12); padding: 6px 10px; border-radius:6px; font-size:0.85em; color:#00d4ff; font-weight:bold; white-space:nowrap;
-        }
+    .overview-card {
+      background:#2d2d44;
+      border-left:5px solid #00d4ff;
+      border-radius:10px; padding: 12px; display:flex; flex-direction:column; justify-content:space-between;
+      transition: transform .16s, box-shadow .16s;
+    }
+    .overview-card:hover { transform: translateY(-6px); box-shadow: 0 10px 20px rgba(0,0,0,0.45); }
+    .overview-card.casual { border-left-color:#4caf50; }
+    .overview-card.moderate { border-left-color:#ffaa00; }
+    .overview-card.important { border-left-color:#ff6b6b; }
+    .overview-card.urgent { border-left-color:#ff0000; }
+    .overview-card.overdue { border-left-color:#ff4444; }
 
-        .overview-card-countdown { display:flex; gap:10px; margin-top:10px; padding-top:10px; border-top:1px solid #444; }
-        .mini-flip { text-align:center; flex:1; display:flex; flex-direction:column; align-items:center; }
-        .mini-flip-card {
-            background: linear-gradient(180deg, #2d3748 50%, #1a202c 50%); color:white; font-size:1.3em; font-weight:bold;
-            padding:8px 6px; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.4); min-width:56px;
-        }
-        .mini-flip-label { font-size:0.7em; color:#aaa; margin-top:6px; }
+    .overview-card-header { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+    .overview-card-title h4 { color:#e0e0e0; font-size: clamp(.95rem, 1.6vw, 1.15rem); margin-bottom:6px; }
+    .overview-card-title p { color:#aaa; font-size: .9rem; line-height:1.2; }
+    .overview-card-date {
+      background: rgba(0,212,255,0.12); padding:6px 10px; border-radius:6px; color:#00d4ff; font-weight:700; font-size:.8rem; white-space:nowrap;
+    }
 
-        /* Day View */
-        #dayView { display:none; background:#2d2d44; border-radius:20px; padding:30px; box-shadow:0 10px 40px rgba(0,0,0,0.4); min-height:90vh; }
-        .day-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; padding-bottom:20px; border-bottom:2px solid #444; }
-        .back-btn { background:#00d4ff; color:#1a1a2e; border:none; padding:12px 24px; border-radius:8px; cursor:pointer; font-size:1em; transition:background 0.3s; font-weight:600; }
-        .back-btn:hover { background:#00b8e6; }
-        .day-title { flex:1; text-align:center; }
-        .day-title h2 { color:#00d4ff; font-size:2em; }
-        .day-title p { color:#aaa; margin-top:5px; }
+    .overview-card-countdown { display:flex; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid #444; }
+    .mini-flip { flex:1; text-align:center; }
+    .mini-flip-card {
+      background: linear-gradient(180deg,#2d3748 50%,#1a202c 50%); color:white; font-weight:800;
+      padding:8px 6px; border-radius:8px; font-size: clamp(1rem, 1.6vw, 1.2rem); box-shadow: inset 0 -4px 10px rgba(0,0,0,0.25);
+    }
+    .mini-flip-label { font-size: .7rem; color:#aaa; margin-top:6px; }
 
-        /* Timer Section */
-        .timer-section { background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%); border-radius:15px; padding:30px; margin-bottom:30px; border:2px solid #444; }
-        .timer-section.urgent { background: linear-gradient(135deg, #8b0000 0%, #ff4444 100%); animation: pulse 2s infinite; }
-        .timer-section.warning { background: linear-gradient(135deg, #ff8800 0%, #ffaa00 100%); }
-        @keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:0.8 } }
+    /* ========== day view & timer ========== */
+    #dayView { display:none; background:#2d2d44; border-radius:20px; padding:28px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); min-height:60vh; margin-top:18px; }
+    .day-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:12px; border-bottom:2px solid #444; gap:12px; }
+    .back-btn { background:#00d4ff; color:#1a1a2e; border:none; padding:10px 18px; border-radius:8px; cursor:pointer; font-weight:700; }
+    .day-title { flex:1; text-align:center; }
+    .day-title h2 { color:#00d4ff; font-size: clamp(1.1rem, 2.4vw, 2rem); }
+    .day-title p { color:#aaa; margin-top:4px; }
 
-        .timer-flip { display:flex; gap:15px; justify-content:center; margin-bottom:20px; flex-wrap:wrap; }
-        .flip-unit { text-align:center; }
-        .flip-card {
-            background: linear-gradient(180deg, #2d3748 50%, #1a202c 50%); color:white; font-size:3em; font-weight:bold; padding:20px 25px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.4); min-width:90px;
-        }
-        .flip-label { font-size:0.9em; color:white; margin-top:8px; opacity:0.9; }
+    .timer-section { background: linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%); border-radius:14px; padding:16px; margin-bottom:18px; border:2px solid #444; }
+    .timer-flip { display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; }
+    .flip-unit { text-align:center; }
+    .flip-card {
+      background: linear-gradient(180deg,#2d3748 50%,#1a202c 50%); color:white; font-weight:800; padding:12px 16px; border-radius:10px;
+      min-width: 68px; font-size: clamp(1.2rem, 2.4vw, 2rem); text-align:center;
+    }
+    .flip-label { font-size:.85rem; color:#fff; margin-top:6px; opacity:0.95; }
 
-        .timer-progress { width:100%; }
-        .progress-bar { width:100%; height:50px; background: rgba(255,255,255,0.1); border-radius:25px; overflow:hidden; position:relative; }
-        .progress-fill { height:100%; background:#00d4ff; transition: width 1s linear, background 0.3s; display:flex; align-items:center; justify-content:flex-end; padding-right:20px; color:#1a1a2e; font-weight:bold; font-size:1.2em; }
-        .progress-fill.urgent { background:#ff4444; color:white; }
-        .progress-fill.warning { background:#ffaa00; color:#1a1a2e; }
+    .timer-progress { width:100%; margin-top:10px; }
+    .progress-bar { width:100%; height:44px; background: rgba(255,255,255,0.06); border-radius:22px; overflow:hidden; }
+    .progress-fill { height:100%; background:#00d4ff; display:flex; align-items:center; justify-content:flex-end; padding-right:16px; color:#1a1a2e; font-weight:800; transition: width 1s linear; }
 
-        /* Events Section */
-        .events-section { margin-top:30px; }
-        .events-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
-        .events-header h3 { color:#e0e0e0; font-size:1.8em; }
-        .add-event-btn { background:#00d4ff; color:#1a1a2e; border:none; width:50px; height:50px; border-radius:50%; font-size:2em; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,212,255,0.4); font-weight:bold; }
-        .add-event-btn:hover { background:#00b8e6; transform:scale(1.1); }
+    /* ========== events list ========== */
+    .events-section { margin-top:12px; }
+    .events-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .events-header h3 { font-size: clamp(1.0rem, 2.0vw, 1.5rem); color:#e0e0e0; }
+    .add-event-btn { background:#00d4ff; color:#1a1a2e; border:none; width:48px; height:48px; border-radius:50%; font-size:1.6rem; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 6px 16px rgba(0,212,255,0.28); }
+    .events-list { display:flex; flex-direction:column; gap:12px; }
 
-        .no-events { text-align:center; padding:60px 20px; color:#666; }
-        .no-events-icon { font-size:4em; margin-bottom:20px; }
+    .event-card {
+      background:#1a1a2e; border-radius:10px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.32); border-left:5px solid #00d4ff;
+    }
+    .event-card.casual { border-left-color:#4caf50; }
+    .event-card.moderate { border-left-color:#ffaa00; }
+    .event-card.important { border-left-color:#ff6b6b; }
+    .event-card.urgent { border-left-color:#ff0000; }
+    .event-info h4 { font-size:1rem; margin-bottom:4px; color:#fff; }
+    .event-info p { color:#bdbdbd; font-size:.92rem; }
+    .event-time { font-weight:800; }
 
-        .events-list { display:flex; flex-direction:column; gap:15px; }
-        .event-card {
-            background:#1a1a2e; color:white; padding:20px 25px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition: all 0.3s; box-shadow:0 4px 12px rgba(0,0,0,0.3); border-left:5px solid #00d4ff;
-        }
-        .event-card.casual { border-left-color:#4caf50; }
-        .event-card.moderate { border-left-color:#ffaa00; }
-        .event-card.important { border-left-color:#ff6b6b; }
-        .event-card.urgent { border-left-color:#ff0000; background: linear-gradient(135deg, #1a1a2e 0%, #3d0000 100%); }
-        .event-card:hover { transform: translateX(10px); box-shadow:0 6px 20px rgba(0,0,0,0.4); }
+    /* ========== modal & form ========== */
+    .modal { display:none; position:fixed; inset:0; background: rgba(0,0,0,0.8); z-index:999; padding:18px; overflow:auto; }
+    .modal-content { background:#2d2d44; max-width:640px; margin:40px auto; padding:20px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.6); }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:2px solid #444; padding-bottom:10px; }
+    .modal-header h2 { color:#00d4ff; font-size:1.4rem; }
+    .close-btn { background:none; border:none; color:#bbb; font-size:1.4rem; cursor:pointer; }
+    .form-group { margin-bottom:12px; }
+    .form-group label { display:block; color:#00d4ff; margin-bottom:6px; font-weight:700; }
+    .form-group input, .form-group textarea, .form-group select {
+      width:100%; padding:10px 12px; border-radius:8px; border:2px solid #444; background:#1a1a2e; color:#e0e0e0;
+    }
+    .priority-options { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .priority-option { padding:10px; border-radius:8px; border:2px solid #444; text-align:center; cursor:pointer; font-weight:700; color:#e0e0e0; }
+    .priority-option.selected { outline: 3px solid rgba(0,212,255,0.12); }
+    .form-actions { display:flex; gap:10px; margin-top:12px; }
+    .submit-btn { background:#00d4ff; color:#1a1a2e; border:none; padding:8px 10px; border-radius:8px; font-weight:800; cursor:pointer; }
+    .cancel-btn { background:#444; color:#e0e0e0; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; }
 
-        .event-info h4 { font-size:1.3em; margin-bottom:5px; }
-        .event-info p { opacity:0.9; font-size:0.95em; }
-        .event-time { font-size:1.1em; font-weight:bold; opacity:0.95; }
-
-        /* Event Detail View */
-        #eventDetailView { display:none; background:#2d2d44; border-radius:20px; padding:40px; box-shadow:0 10px 40px rgba(0,0,0,0.4); max-width:800px; margin:0 auto; }
-        .detail-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; padding-bottom:20px; border-bottom:2px solid #444; }
-        .detail-content { padding:20px 0; }
-        .detail-item { margin-bottom:25px; }
-        .detail-item label { display:block; color:#00d4ff; font-weight:bold; margin-bottom:8px; font-size:1.1em; }
-        .detail-item p { color:#e0e0e0; font-size:1.1em; line-height:1.6; }
-        .detail-actions { display:flex; gap:15px; margin-top:30px; }
-        .edit-btn, .delete-btn { flex:1; padding:15px; border:none; border-radius:8px; font-size:1.1em; cursor:pointer; transition: all 0.3s; font-weight:600; }
-        .edit-btn { background: #00d4ff; color:#1a1a2e; }
-        .edit-btn:hover { background:#00b8e6; }
-        .delete-btn { background:#ff4444; color:white; }
-        .delete-btn:hover { background:#cc0000; }
-
-        /* Modal */
-        .modal { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index:1000; overflow-y:auto; padding:20px; }
-        .modal-content { background:#2d2d44; max-width:600px; margin:50px auto; padding:40px; border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,0.6); }
-        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; padding-bottom:20px; border-bottom:2px solid #444; }
-        .modal-header h2 { color:#00d4ff; font-size:2em; }
-        .close-btn { background:none; border:none; color:#999; font-size:2em; cursor:pointer; transition:color 0.3s; }
-        .close-btn:hover { color:#ff4444; }
-        .form-group { margin-bottom:25px; }
-        .form-group label { display:block; color:#00d4ff; font-weight:bold; margin-bottom:10px; font-size:1.1em; }
-        .form-group input, .form-group textarea, .form-group select {
-            width:100%; padding:15px; background:#1a1a2e; border:2px solid #444; border-radius:8px; color:#e0e0e0; font-size:1em; font-family:inherit;
-        }
-        .form-group textarea { resize:vertical; min-height:100px; }
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline:none; border-color:#00d4ff; }
-        .priority-options { display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; }
-        .priority-option { padding:15px; border:2px solid #444; border-radius:8px; cursor:pointer; text-align:center; transition:all 0.3s; color:#e0e0e0; font-weight:600; }
-        .priority-option:hover { border-color:#00d4ff; }
-        .priority-option.selected { border-width:3px; }
-        .priority-option.casual.selected { background:#4caf50; border-color:#4caf50; color:white; }
-        .priority-option.moderate.selected { background:#ffaa00; border-color:#ffaa00; color:#1a1a2e; }
-        .priority-option.important.selected { background:#ff6b6b; border-color:#ff6b6b; color:white; }
-        .priority-option.urgent.selected { background:#ff0000; border-color:#ff0000; color:white; }
-        .form-actions { display:flex; gap:15px; margin-top:30px; }
-        .submit-btn, .cancel-btn { flex:1; padding:15px; border:none; border-radius:8px; font-size:1.1em; cursor:pointer; transition: all 0.3s; font-weight:600; }
-        .submit-btn { background:#00d4ff; color:#1a1a2e; }
-        .submit-btn:hover { background:#00b8e6; }
-        .cancel-btn { background:#444; color:#e0e0e0; }
-        .cancel-btn:hover { background:#555; }
-
-        /* Responsive tweak */
-        @media (max-width: 900px) {
-            .cal-modern { grid-template-columns: repeat(7, 1fr); gap: 8px; }
-            .overview-list { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-            .mini-flip-card { font-size: 1.15em; min-width: 50px; padding: 6px 6px; }
-            .flip-card { font-size: 2.2em; min-width: 70px; padding:16px 20px; }
-            .month-nav span { min-width: 140px; }
-        }
-        @media (max-width: 640px) {
-            .cal-modern { grid-template-columns: repeat(7, 1fr); gap: 6px; }
-            .month-nav span { min-width: 120px; font-size: 1.05em; }
-            .overview-list { grid-template-columns: 1fr; }
-            .mini-flip-card { font-size: 1.05em; min-width: 48px; padding: 6px 6px; }
-            .flip-card { font-size: 1.6em; min-width: 64px; padding: 12px 16px; }
-            .calendar-header h1 { font-size: 1.6rem; }
-            #homeView { padding: 20px; }
-        }
-    </style>
+    /* ========== responsive tweaks ========== */
+    @media (max-width: 1100px) {
+      .cal-modern { gap: 8px; }
+      .overview-list { gap:10px; }
+    }
+    @media (max-width: 760px) {
+      .cal-modern { grid-template-columns: repeat(7, minmax(28px, 1fr)); gap:6px; }
+      .cal-modern .day { font-size: clamp(.72rem, 1.8vw, .9rem); border-radius:10px; }
+      .timeline { font-size: .9rem; }
+      .modal-content { margin: 18px auto; padding:12px; }
+      .flip-card { font-size: clamp(1.1rem, 3vw, 1.5rem); min-width:56px; padding:9px 12px; }
+    }
+    @media (max-width: 420px) {
+      .cal-modern { grid-template-columns: repeat(7, minmax(22px, 1fr)); gap:4px; }
+      .calendar-header h1 { font-size:1.15rem; }
+      .month-nav span { font-size:.95rem; }
+      .overview-list { grid-template-columns: 1fr; gap:8px; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Home View with Calendar -->
-        <div id="homeView">
-            <div class="calendar-header">
-                <h1>📚 Assignment Planner</h1>
-                <div class="month-nav">
-                    <button onclick="changeMonth(-1)">← Prev</button>
-                    <span id="currentMonth">October 2025</span>
-                    <button onclick="changeMonth(1)">Next →</button>
-                </div>
-            </div>
-            <div class="cal-modern" id="calendar"></div>
+  <div class="container">
+    <div id="homeView">
+      <div class="calendar-header">
+        <h1>📚 Assignment Planner</h1>
+        <div class="month-nav">
+          <button onclick="changeMonth(-1)">← Prev</button>
+          <span id="currentMonth">October 2025</span>
+          <button onclick="changeMonth(1)">Next →</button>
+        </div>
+      </div>
 
-            <!-- View Summaries Button -->
-            <div class="summaries-toggle">
-                <button id="summariesBtn" class="summaries-btn" onclick="toggleSummaries()">
-                    View Summaries
-                </button>
-            </div>
+      <div class="cal-modern" id="calendar"></div>
 
-            <!-- Summaries Panel (hidden by default) -->
-            <div id="summariesPanel" class="summaries-panel" aria-hidden="true">
-                <div class="view-tabs" role="tablist" aria-label="Summary tabs">
-                    <div class="view-tab active" data-type="week" onclick="switchSummaryTab('week')">Weekly Summary</div>
-                    <div class="view-tab" data-type="month" onclick="switchSummaryTab('month')">Monthly Summary</div>
-                </div>
+      <!-- centered summaries toggle -->
+      <div class="summaries-toggle">
+        <button id="summariesBtn" class="summaries-btn" onclick="toggleSummaries()">View Summaries</button>
+      </div>
 
-                <div class="overview-section">
-                    <div id="weekSummary" class="overview-content active">
-                        <div id="weekAssignments" class="overview-list"></div>
-                    </div>
-                    <div id="monthSummary" class="overview-content">
-                        <div id="monthAssignments" class="overview-list"></div>
-                    </div>
-                </div>
-            </div>
+      <!-- summaries panel -->
+      <div id="summariesPanel" class="summaries-panel" aria-hidden="true">
+        <div class="view-tabs" role="tablist" aria-label="Summaries">
+          <div class="view-tab active" data-type="week" onclick="switchSummaryTab('week')">Weekly Summary</div>
+          <div class="view-tab" data-type="month" onclick="switchSummaryTab('month')">Monthly Summary</div>
         </div>
 
-        <!-- Day View -->
-        <div id="dayView">
-            <div class="day-header">
-                <button class="back-btn" onclick="showHomeView()">← Back to Calendar</button>
-                <div class="day-title">
-                    <h2 id="selectedDayTitle">Monday, October 8</h2>
-                    <p id="selectedDayDate">2025</p>
-                </div>
-                <div style="width: 120px;"></div>
-            </div>
-
-            <!-- Timer Section -->
-            <div class="timer-section" id="timerSection">
-                <div class="timer-flip">
-                    <div class="flip-unit">
-                        <div class="flip-card" id="flipDays">00</div>
-                        <div class="flip-label">Days</div>
-                    </div>
-                    <div class="flip-unit">
-                        <div class="flip-card" id="flipHours">00</div>
-                        <div class="flip-label">Hours</div>
-                    </div>
-                    <div class="flip-unit">
-                        <div class="flip-card" id="flipMinutes">00</div>
-                        <div class="flip-label">Minutes</div>
-                    </div>
-                    <div class="flip-unit">
-                        <div class="flip-card" id="flipSeconds">00</div>
-                        <div class="flip-label">Seconds</div>
-                    </div>
-                </div>
-                <div class="timer-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill" style="width: 0%">
-                            <span id="progressText">No deadline set</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Events Section -->
-            <div class="events-section">
-                <div class="events-header">
-                    <h3>Today's Assignments</h3>
-                    <button class="add-event-btn" onclick="openAddModal()">+</button>
-                </div>
-                <div id="eventsContainer"></div>
-            </div>
+        <div class="overview-section">
+          <div id="weekSummary" class="overview-content active">
+            <div id="weekAssignments" class="overview-list"></div>
+          </div>
+          <div id="monthSummary" class="overview-content">
+            <div id="monthAssignments" class="overview-list"></div>
+          </div>
         </div>
-
-        <!-- Event Detail View -->
-        <div id="eventDetailView">
-            <div class="detail-header">
-                <button class="back-btn" onclick="showDayView()">← Back to Day</button>
-                <h2 style="color: #00d4ff; flex: 1; text-align: center;">Assignment Details</h2>
-                <div style="width: 120px;"></div>
-            </div>
-            <div class="detail-content" id="eventDetailContent"></div>
-        </div>
+      </div>
     </div>
 
-    <!-- Add/Edit Event Modal -->
-    <div class="modal" id="eventModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Add Assignment</h2>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
-            </div>
-            <form id="eventForm">
-                <div class="form-group">
-                    <label for="unitInput">Unit/Course *</label>
-                    <input type="text" id="unitInput" required placeholder="e.g., Mathematics 101">
-                </div>
-
-                <div class="form-group">
-                    <label for="whereInput">Where to Get Assignment *</label>
-                    <input type="text" id="whereInput" required placeholder="e.g., Online portal, Professor's office">
-                </div>
-
-                <div class="form-group">
-                    <label for="dueDateInput">Due Date *</label>
-                    <input type="date" id="dueDateInput" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="dueTimeInput">Due Time *</label>
-                    <input type="time" id="dueTimeInput" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="materialsInput">Materials Needed</label>
-                    <textarea id="materialsInput" placeholder="List any materials or resources needed..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="descriptionInput">Additional Notes</label>
-                    <textarea id="descriptionInput" placeholder="Any additional details..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Priority Level *</label>
-                    <div class="priority-options">
-                        <div class="priority-option casual" onclick="selectPriority('casual')">🟢 Casual</div>
-                        <div class="priority-option moderate" onclick="selectPriority('moderate')">🟡 Moderate</div>
-                        <div class="priority-option important" onclick="selectPriority('important')">🟠 Important</div>
-                        <div class="priority-option urgent" onclick="selectPriority('urgent')">🔴 Urgent</div>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="submit-btn">Save Assignment</button>
-                </div>
-            </form>
+    <!-- Day View (hidden until a day is clicked) -->
+    <div id="dayView">
+      <div class="day-header">
+        <button class="back-btn" onclick="showHomeView()">← Back to Calendar</button>
+        <div class="day-title">
+          <h2 id="selectedDayTitle">Monday, October 8</h2>
+          <p id="selectedDayDate">2025</p>
         </div>
+        <div style="width:120px"></div>
+      </div>
+
+      <!-- Timer -->
+      <div class="timer-section" id="timerSection">
+        <div class="timer-flip">
+          <div class="flip-unit">
+            <div class="flip-card" id="flipDays">00</div>
+            <div class="flip-label">Days</div>
+          </div>
+          <div class="flip-unit">
+            <div class="flip-card" id="flipHours">00</div>
+            <div class="flip-label">Hours</div>
+          </div>
+          <div class="flip-unit">
+            <div class="flip-card" id="flipMinutes">00</div>
+            <div class="flip-label">Minutes</div>
+          </div>
+          <div class="flip-unit">
+            <div class="flip-card" id="flipSeconds">00</div>
+            <div class="flip-label">Seconds</div>
+          </div>
+        </div>
+        <div class="timer-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%">
+              <span id="progressText">No deadline set</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- events -->
+      <div class="events-section">
+        <div class="events-header">
+          <h3>Today's Assignments</h3>
+          <button class="add-event-btn" onclick="openAddModal()">+</button>
+        </div>
+        <div id="eventsContainer"></div>
+      </div>
     </div>
 
-    <script>
-        // -----------------------
-        // DATA + PERSISTENCE
-        // -----------------------
-        let events = {}; // keyed by 'YYYY-MM-DD' -> array of events
-        let currentDate = new Date();
-        let selectedDate = null;
-        let countdownInterval = null;
-        let summariesInterval = null;
-        let summariesVisible = false;
-        let activeSummaryTab = 'week';
-        let editingEventId = null;
-        let selectedPriority = 'casual';
+    <!-- event detail -->
+    <div id="eventDetailView" style="display:none;">
+      <div class="detail-header">
+        <button class="back-btn" onclick="showDayView()">← Back to Day</button>
+        <h2 style="color:#00d4ff; flex:1; text-align:center">Assignment Details</h2>
+        <div style="width:120px"></div>
+      </div>
+      <div class="detail-content" id="eventDetailContent"></div>
+    </div>
+  </div>
 
-        function loadEvents() {
-            const stored = localStorage.getItem('assignments');
-            if (stored) {
-                try { events = JSON.parse(stored) || {}; } catch (e) { events = {}; }
-            }
+  <!-- modal for add/edit -->
+  <div class="modal" id="eventModal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Add Assignment</h2>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <form id="eventForm">
+        <div class="form-group">
+          <label for="unitInput">Unit/Course *</label>
+          <input id="unitInput" type="text" required placeholder="e.g., Mathematics 101" />
+        </div>
+        <div class="form-group">
+          <label for="whereInput">Where to Get Assignment *</label>
+          <input id="whereInput" type="text" required placeholder="e.g., Online portal" />
+        </div>
+        <div class="form-group">
+          <label for="dueDateInput">Due Date *</label>
+          <input id="dueDateInput" type="date" required />
+        </div>
+        <div class="form-group">
+          <label for="dueTimeInput">Due Time *</label>
+          <input id="dueTimeInput" type="time" required />
+        </div>
+        <div class="form-group">
+          <label for="materialsInput">Materials Needed</label>
+          <textarea id="materialsInput" placeholder="List materials..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="descriptionInput">Additional Notes</label>
+          <textarea id="descriptionInput" placeholder="Any additional details..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Priority Level *</label>
+          <div class="priority-options">
+            <div class="priority-option casual" onclick="selectPriority('casual')">🟢 Casual</div>
+            <div class="priority-option moderate" onclick="selectPriority('moderate')">🟡 Moderate</div>
+            <div class="priority-option important" onclick="selectPriority('important')">🟠 Important</div>
+            <div class="priority-option urgent" onclick="selectPriority('urgent')">🔴 Urgent</div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="submit-btn">Save Assignment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    /* ====================
+       Data + persistence
+       ==================== */
+    let events = {};
+    let currentDate = new Date();
+    let selectedDate = null;
+    let countdownInterval = null;
+    let summariesInterval = null;
+    let summariesVisible = false;
+    let activeSummaryTab = 'week';
+    let editingEventId = null;
+    let selectedPriority = 'casual';
+
+    function loadEvents() {
+      const raw = localStorage.getItem('assignments');
+      if (!raw) { events = {}; return; }
+      try { events = JSON.parse(raw) || {}; } catch (e) { events = {}; }
+    }
+
+    function saveEvents() {
+      localStorage.setItem('assignments', JSON.stringify(events));
+      if (summariesVisible) renderSummaries(activeSummaryTab);
+    }
+
+    /* ====================
+       Calendar rendering
+       ==================== */
+    function renderCalendar() {
+      const calendar = document.getElementById('calendar');
+      calendar.innerHTML = '';
+
+      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      days.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'day-label';
+        el.textContent = d;
+        calendar.appendChild(el);
+      });
+
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const today = new Date();
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'day empty';
+        calendar.appendChild(empty);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const day = document.createElement('div');
+        day.className = 'day';
+        day.textContent = d;
+
+        const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        if (events[dateKey] && events[dateKey].length > 0) day.classList.add('has-events');
+        if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) day.classList.add('today');
+
+        day.onclick = () => showDayView(d, month, year);
+        calendar.appendChild(day);
+      }
+      updateMonthDisplay();
+    }
+
+    function updateMonthDisplay() {
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      document.getElementById('currentMonth').textContent = `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    }
+
+    function changeMonth(delta) {
+      currentDate.setMonth(currentDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    /* ====================
+       Views + events list
+       ==================== */
+    function showHomeView() {
+      document.getElementById('homeView').style.display = 'block';
+      document.getElementById('dayView').style.display = 'none';
+      document.getElementById('eventDetailView').style.display = 'none';
+      stopCountdown();
+    }
+
+    function showDayView(day, month, year) {
+      if (day === undefined) {
+        const parts = selectedDate.split('-');
+        year = parseInt(parts[0]); month = parseInt(parts[1]) - 1; day = parseInt(parts[2]);
+      } else {
+        selectedDate = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      }
+
+      const date = new Date(year, month, day);
+      const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+      document.getElementById('selectedDayTitle').textContent = `${dayNames[date.getDay()]}, ${monthNames[month]} ${day}`;
+      document.getElementById('selectedDayDate').textContent = year;
+
+      renderEvents();
+      startCountdown();
+
+      document.getElementById('homeView').style.display = 'none';
+      document.getElementById('dayView').style.display = 'block';
+      document.getElementById('eventDetailView').style.display = 'none';
+    }
+
+    function renderEvents() {
+      const container = document.getElementById('eventsContainer');
+      const dayEvents = events[selectedDate] || [];
+
+      if (dayEvents.length === 0) {
+        container.innerHTML = `
+          <div class="no-events">
+            <div class="no-events-icon">📭</div>
+            <p>No assignments scheduled for this day</p>
+            <p style="margin-top:10px;color:#888">Click + to add an assignment</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = '<div class="events-list"></div>';
+      const list = container.querySelector('.events-list');
+
+      dayEvents.sort((a,b) => (a.dueTime||'00:00').localeCompare(b.dueTime||'00:00'));
+
+      dayEvents.forEach(ev => {
+        const card = document.createElement('div');
+        card.className = `event-card ${ev.priority}`;
+        card.onclick = () => showEventDetail(ev);
+        const time = ev.dueTime ? formatTime(ev.dueTime) : 'No time set';
+        card.innerHTML = `<div class="event-info"><h4>${escapeHtml(ev.unit)}</h4><p>${escapeHtml(ev.where)}</p></div><div class="event-time">${time}</div>`;
+        list.appendChild(card);
+      });
+    }
+
+    function showEventDetail(event) {
+      const content = document.getElementById('eventDetailContent');
+      const time = event.dueTime ? formatTime(event.dueTime) : 'No time set';
+      const labels = { casual:'🟢 Casual', moderate:'🟡 Moderate', important:'🟠 Important', urgent:'🔴 Urgent' };
+      content.innerHTML = `
+        <div class="detail-item"><label>Unit/Course</label><p>${escapeHtml(event.unit)}</p></div>
+        <div class="detail-item"><label>Where to Get Assignment</label><p>${escapeHtml(event.where)}</p></div>
+        <div class="detail-item"><label>Due Date & Time</label><p>${escapeHtml(event.dueDate)} at ${time}</p></div>
+        <div class="detail-item"><label>Materials Needed</label><p>${escapeHtml(event.materials||'None specified')}</p></div>
+        <div class="detail-item"><label>Additional Notes</label><p>${escapeHtml(event.description||'No additional notes')}</p></div>
+        <div class="detail-item"><label>Priority Level</label><p>${labels[event.priority]}</p></div>
+        <div class="detail-actions">
+          <button class="edit-btn" onclick="editEvent(${event.id})">Edit Assignment</button>
+          <button class="delete-btn" onclick="deleteEvent(${event.id})">Delete Assignment</button>
+        </div>`;
+      document.getElementById('homeView').style.display = 'none';
+      document.getElementById('dayView').style.display = 'none';
+      document.getElementById('eventDetailView').style.display = 'block';
+    }
+
+    /* ====================
+       Add / edit modal
+       ==================== */
+    function openAddModal() {
+      editingEventId = null;
+      document.getElementById('modalTitle').textContent = 'Add Assignment';
+      document.getElementById('eventForm').reset();
+      selectedPriority = 'casual';
+      updatePrioritySelection();
+      const defaultDate = selectedDate || new Date().toISOString().slice(0,10);
+      document.getElementById('dueDateInput').value = defaultDate;
+      document.getElementById('eventModal').style.display = 'block';
+      document.getElementById('eventModal').setAttribute('aria-hidden','false');
+    }
+
+    function editEvent(eventId) {
+      let found=null, foundKey=null;
+      for (const k in events) {
+        const idx = events[k].findIndex(e => e.id === eventId);
+        if (idx !== -1) { found = events[k][idx]; foundKey = k; break; }
+      }
+      if (!found) return;
+      editingEventId = eventId;
+      document.getElementById('modalTitle').textContent = 'Edit Assignment';
+      document.getElementById('unitInput').value = found.unit;
+      document.getElementById('whereInput').value = found.where;
+      document.getElementById('dueDateInput').value = found.dueDate;
+      document.getElementById('dueTimeInput').value = found.dueTime;
+      document.getElementById('materialsInput').value = found.materials || '';
+      document.getElementById('descriptionInput').value = found.description || '';
+      selectedPriority = found.priority;
+      updatePrioritySelection();
+      document.getElementById('eventModal').style.display = 'block';
+      document.getElementById('eventModal').setAttribute('aria-hidden','false');
+    }
+
+    function closeModal() {
+      document.getElementById('eventModal').style.display = 'none';
+      document.getElementById('eventModal').setAttribute('aria-hidden','true');
+      editingEventId = null;
+    }
+
+    function selectPriority(p) { selectedPriority = p; updatePrioritySelection(); }
+    function updatePrioritySelection() {
+      document.querySelectorAll('.priority-option').forEach(el => el.classList.remove('selected'));
+      const el = document.querySelector('.priority-option.' + selectedPriority);
+      if (el) el.classList.add('selected');
+    }
+
+    document.getElementById('eventForm').onsubmit = function(e) {
+      e.preventDefault();
+      const unit = document.getElementById('unitInput').value.trim();
+      const where = document.getElementById('whereInput').value.trim();
+      const dueDate = document.getElementById('dueDateInput').value;
+      const dueTime = document.getElementById('dueTimeInput').value;
+      const materials = document.getElementById('materialsInput').value.trim();
+      const description = document.getElementById('descriptionInput').value.trim();
+
+      if (!unit || !where || !dueDate) { alert('Please fill required fields.'); return; }
+
+      if (editingEventId !== null) {
+        // remove old then add updated (handles date-change)
+        for (const k in events) {
+          const idx = events[k].findIndex(e => e.id === editingEventId);
+          if (idx !== -1) {
+            events[k].splice(idx,1);
+            if (events[k].length === 0) delete events[k];
+            break;
+          }
+        }
+        const updated = { id: editingEventId, unit, where, dueDate, dueTime, materials, description, priority: selectedPriority };
+        if (!events[dueDate]) events[dueDate] = [];
+        events[dueDate].push(updated);
+        selectedDate = dueDate;
+      } else {
+        const newEvent = { id: Date.now(), unit, where, dueDate, dueTime, materials, description, priority: selectedPriority };
+        if (!events[dueDate]) events[dueDate] = [];
+        events[dueDate].push(newEvent);
+        selectedDate = dueDate;
+      }
+
+      saveEvents();
+      closeModal();
+      renderCalendar();
+      const [y,m,d] = selectedDate.split('-');
+      showDayView(parseInt(d), parseInt(m)-1, parseInt(y));
+    };
+
+    function deleteEvent(eventId) {
+      if (!confirm('Are you sure you want to delete this assignment?')) return;
+      for (const k in events) {
+        const idx = events[k].findIndex(e => e.id === eventId);
+        if (idx !== -1) {
+          events[k].splice(idx,1);
+          if (events[k].length === 0) delete events[k];
+          break;
+        }
+      }
+      saveEvents();
+      renderCalendar();
+      if (selectedDate) showDayView();
+    }
+
+    /* ====================
+       Countdown day-view (no flip animation)
+       ==================== */
+    function pad(n){ return String(n).padStart(2,'0'); }
+
+    function getNextDeadline() {
+      const dayEvents = events[selectedDate] || [];
+      if (dayEvents.length === 0) return null;
+      let earliest = null;
+      dayEvents.forEach(ev => {
+        if (ev.dueDate && ev.dueTime) {
+          const d = new Date(ev.dueDate + 'T' + ev.dueTime);
+          if (!earliest || d < earliest.deadline) earliest = { deadline: d, ev };
+        }
+      });
+      return earliest;
+    }
+
+    function updateCountdown() {
+      const next = getNextDeadline();
+      const daysEl = document.getElementById('flipDays');
+      const hoursEl = document.getElementById('flipHours');
+      const minutesEl = document.getElementById('flipMinutes');
+      const secondsEl = document.getElementById('flipSeconds');
+      const progressText = document.getElementById('progressText');
+      const progressFill = document.getElementById('progressFill');
+      const timerSection = document.getElementById('timerSection');
+
+      if (!next) {
+        daysEl.textContent = '00'; hoursEl.textContent = '00'; minutesEl.textContent = '00'; secondsEl.textContent = '00';
+        progressText.textContent = 'No deadline set'; progressFill.style.width = '0%';
+        timerSection.className = 'timer-section';
+        progressFill.className = 'progress-fill';
+        return;
+      }
+
+      const now = new Date();
+      let diff = next.deadline - now;
+
+      if (diff <= 0) {
+        daysEl.textContent = '00'; hoursEl.textContent = '00'; minutesEl.textContent = '00'; secondsEl.textContent = '00';
+        progressText.textContent = 'OVERDUE!'; progressFill.style.width = '100%';
+        timerSection.className = 'timer-section urgent'; progressFill.className = 'progress-fill urgent';
+        return;
+      }
+
+      const days = Math.floor(diff / (1000*60*60*24)); diff -= days*(1000*60*60*24);
+      const hours = Math.floor(diff / (1000*60*60)); diff -= hours*(1000*60*60);
+      const minutes = Math.floor(diff / (1000*60)); diff -= minutes*(1000*60);
+      const seconds = Math.floor(diff / 1000);
+
+      daysEl.textContent = pad(days); hoursEl.textContent = pad(hours); minutesEl.textContent = pad(minutes); secondsEl.textContent = pad(seconds);
+
+      const totalSeconds = (next.deadline - now) / 1000;
+      const maxSeconds = 7 * 24 * 60 * 60;
+      const percent = Math.max(0, ((maxSeconds - totalSeconds) / maxSeconds) * 100);
+      progressFill.style.width = Math.min(percent, 100) + '%';
+      progressText.textContent = `${days}d ${hours}h ${minutes}m`;
+
+      if (days === 0 && hours < 6) { timerSection.className='timer-section urgent'; progressFill.className='progress-fill urgent'; }
+      else if (days === 0) { timerSection.className='timer-section warning'; progressFill.className='progress-fill warning'; }
+      else if (days <= 1) { timerSection.className='timer-section warning'; progressFill.className='progress-fill warning'; }
+      else { timerSection.className='timer-section'; progressFill.className='progress-fill'; }
+    }
+
+    function startCountdown() { stopCountdown(); updateCountdown(); countdownInterval = setInterval(updateCountdown, 1000); }
+    function stopCountdown() { if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; } }
+
+    /* ====================
+       Summaries (week / month)
+       ==================== */
+    function toggleSummaries() {
+      const panel = document.getElementById('summariesPanel');
+      const btn = document.getElementById('summariesBtn');
+      summariesVisible = !summariesVisible;
+      if (summariesVisible) {
+        panel.classList.add('open'); panel.setAttribute('aria-hidden','false');
+        btn.textContent = 'Hide Summaries';
+        renderSummaries(activeSummaryTab);
+        startSummariesCountdown();
+        setTimeout(()=> panel.scrollIntoView({ behavior:'smooth', block:'start' }), 180);
+      } else {
+        panel.classList.remove('open'); panel.setAttribute('aria-hidden','true');
+        btn.textContent = 'View Summaries';
+        stopSummariesCountdown();
+      }
+    }
+
+    function switchSummaryTab(type) {
+      activeSummaryTab = type;
+      document.querySelectorAll('.view-tab').forEach(tab => tab.classList.toggle('active', tab.getAttribute('data-type') === type));
+      document.querySelectorAll('.overview-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(type + 'Summary').classList.add('active');
+      if (summariesVisible) renderSummaries(type);
+    }
+
+    function renderSummaries(type) {
+      const now = new Date();
+      const weekStart = new Date(now); weekStart.setHours(0,0,0,0); weekStart.setDate(now.getDate() - now.getDay());
+      const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6); weekEnd.setHours(23,59,59,999);
+
+      const target = document.getElementById(type === 'week' ? 'weekAssignments' : 'monthAssignments');
+      target.innerHTML = '';
+
+      const list = [];
+      for (const key in events) {
+        const eventDate = new Date(key + 'T00:00:00');
+        const inWeek = eventDate >= weekStart && eventDate <= weekEnd;
+        const inMonth = (eventDate.getMonth() === now.getMonth() && eventDate.getFullYear() === now.getFullYear());
+        if ((type === 'week' && inWeek) || (type === 'month' && inMonth)) {
+          events[key].forEach(ev => list.push(Object.assign({}, ev, { date: key })));
+        }
+      }
+
+      if (list.length === 0) { target.innerHTML = `<div class="overview-empty">No ${type} assignments found 📭</div>`; return; }
+
+      list.sort((a,b) => new Date(`${a.date}T${a.dueTime||'00:00'}`) - new Date(`${b.date}T${b.dueTime||'00:00'}`));
+
+      list.forEach(ev => {
+        const due = new Date(`${ev.date}T${ev.dueTime||'00:00'}`);
+        const card = document.createElement('div');
+        card.className = `overview-card ${ev.priority}`;
+        const dueLabel = (ev.dueTime ? `${new Date(ev.date).toDateString()} • ${formatTime(ev.dueTime)}` : new Date(ev.date).toDateString());
+        card.innerHTML = `
+          <div class="overview-card-header">
+            <div class="overview-card-title">
+              <h4>${escapeHtml(ev.unit)}</h4>
+              <p>${escapeHtml(ev.description || ev.where || 'No details provided')}</p>
+            </div>
+            <div class="overview-card-date">${dueLabel}</div>
+          </div>
+          <div class="overview-card-countdown" data-deadline="${due.toISOString()}">
+            <div class="mini-flip"><div class="mini-flip-card" data-part="days">--</div><div class="mini-flip-label">Days</div></div>
+            <div class="mini-flip"><div class="mini-flip-card" data-part="hours">--</div><div class="mini-flip-label">Hours</div></div>
+            <div class="mini-flip"><div class="mini-flip-card" data-part="minutes">--</div><div class="mini-flip-label">Minutes</div></div>
+            <div class="mini-flip"><div class="mini-flip-card" data-part="seconds">--</div><div class="mini-flip-label">Seconds</div></div>
+          </div>
+        `;
+        card.onclick = () => { selectedDate = ev.date; showEventDetail(ev); };
+        target.appendChild(card);
+      });
+
+      updateSummariesCountdown();
+    }
+
+    function startSummariesCountdown() { stopSummariesCountdown(); summariesInterval = setInterval(updateSummariesCountdown, 1000); }
+    function stopSummariesCountdown() { if (summariesInterval) { clearInterval(summariesInterval); summariesInterval = null; } }
+
+    function updateSummariesCountdown() {
+      const container = document.querySelector('.overview-content.active');
+      if (!container) return;
+      const nodes = container.querySelectorAll('[data-deadline]');
+      const now = new Date();
+      nodes.forEach(node => {
+        const deadline = new Date(node.getAttribute('data-deadline'));
+        const daysEl = node.querySelector('[data-part="days"]');
+        const hoursEl = node.querySelector('[data-part="hours"]');
+        const minsEl = node.querySelector('[data-part="minutes"]');
+        const secsEl = node.querySelector('[data-part="seconds"]');
+
+        if (isNaN(deadline)) {
+          if (daysEl) daysEl.textContent='--'; if (hoursEl) hoursEl.textContent='--';
+          if (minsEl) minsEl.textContent='--'; if (secsEl) secsEl.textContent='--';
+          return;
         }
 
-        function saveEvents() {
-            localStorage.setItem('assignments', JSON.stringify(events));
-            if (summariesVisible) renderSummaries(activeSummaryTab);
+        let diff = Math.max(0, deadline - now);
+        if (diff <= 0) {
+          if (daysEl) daysEl.textContent='00'; if (hoursEl) hoursEl.textContent='00';
+          if (minsEl) minsEl.textContent='00'; if (secsEl) secsEl.textContent='00';
+          const card = node.closest('.overview-card'); if (card) card.classList.add('overdue');
+          return;
         }
 
-        // -----------------------
-        // CALENDAR
-        // -----------------------
-        function renderCalendar() {
-            const calendar = document.getElementById('calendar');
-            calendar.innerHTML = '';
-
-            const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-            days.forEach(d => {
-                const label = document.createElement('div');
-                label.className = 'day-label';
-                label.textContent = d;
-                calendar.appendChild(label);
-            });
-
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const today = new Date();
-
-            for (let i = 0; i < firstDay; i++) {
-                const emptyDay = document.createElement('div');
-                emptyDay.className = 'day empty';
-                calendar.appendChild(emptyDay);
-            }
-
-            for (let i = 1; i <= daysInMonth; i++) {
-                const day = document.createElement('div');
-                day.className = 'day';
-                day.textContent = i;
-
-                const dateKey = `${year}-${String(month + 1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-
-                if (events[dateKey] && events[dateKey].length > 0) {
-                    day.classList.add('has-events');
-                }
-
-                if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-                    day.classList.add('today');
-                }
-
-                day.onclick = () => {
-                    showDayView(i, month, year);
-                };
-
-                calendar.appendChild(day);
-            }
-
-            updateMonthDisplay();
-        }
-
-        function updateMonthDisplay() {
-            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-            document.getElementById('currentMonth').textContent = `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
-        }
-
-        function changeMonth(delta) {
-            currentDate.setMonth(currentDate.getMonth() + delta);
-            renderCalendar();
-        }
-
-        // -----------------------
-        // VIEWS
-        // -----------------------
-        function showHomeView() {
-            document.getElementById('homeView').style.display = 'block';
-            document.getElementById('dayView').style.display = 'none';
-            document.getElementById('eventDetailView').style.display = 'none';
-            stopCountdown();
-        }
-
-        function showDayView(day, month, year) {
-            if (day === undefined) {
-                const parts = selectedDate.split('-');
-                year = parseInt(parts[0]);
-                month = parseInt(parts[1]) - 1;
-                day = parseInt(parts[2]);
-            } else {
-                selectedDate = `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-            }
-
-            const date = new Date(year, month, day);
-            const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-            const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
-            document.getElementById('selectedDayTitle').textContent = `${dayNames[date.getDay()]}, ${monthNames[month]} ${day}`;
-            document.getElementById('selectedDayDate').textContent = year;
-
-            renderEvents();
-            startCountdown();
-
-            document.getElementById('homeView').style.display = 'none';
-            document.getElementById('dayView').style.display = 'block';
-            document.getElementById('eventDetailView').style.display = 'none';
-        }
-
-        // -----------------------
-        // EVENTS (list + detail)
-        // -----------------------
-        function renderEvents() {
-            const container = document.getElementById('eventsContainer');
-            const dayEvents = events[selectedDate] || [];
-
-            if (dayEvents.length === 0) {
-                container.innerHTML = `
-                    <div class="no-events">
-                        <div class="no-events-icon">📭</div>
-                        <p>No assignments scheduled for this day</p>
-                        <p style="margin-top:10px; color:#666;">Click the + button to add an assignment</p>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = '<div class="events-list"></div>';
-                const eventsList = container.querySelector('.events-list');
-
-                dayEvents.sort((a,b) => (a.dueTime || '00:00').localeCompare(b.dueTime || '00:00'));
-
-                dayEvents.forEach(event => {
-                    const card = document.createElement('div');
-                    card.className = `event-card ${event.priority}`;
-                    card.onclick = () => showEventDetail(event);
-
-                    const time = event.dueTime ? formatTime(event.dueTime) : 'No time set';
-
-                    card.innerHTML = `
-                        <div class="event-info">
-                            <h4>${escapeHtml(event.unit)}</h4>
-                            <p>${escapeHtml(event.where)}</p>
-                        </div>
-                        <div class="event-time">${time}</div>
-                    `;
-                    eventsList.appendChild(card);
-                });
-            }
-        }
-
-        function showEventDetail(event) {
-            const content = document.getElementById('eventDetailContent');
-            const time = event.dueTime ? formatTime(event.dueTime) : 'No time set';
-
-            const priorityLabels = {
-                casual: '🟢 Casual',
-                moderate: '🟡 Moderate',
-                important: '🟠 Important',
-                urgent: '🔴 Urgent'
-            };
-
-            content.innerHTML = `
-                <div class="detail-item">
-                    <label>Unit/Course</label>
-                    <p>${escapeHtml(event.unit)}</p>
-                </div>
-                <div class="detail-item">
-                    <label>Where to Get Assignment</label>
-                    <p>${escapeHtml(event.where)}</p>
-                </div>
-                <div class="detail-item">
-                    <label>Due Date & Time</label>
-                    <p>${escapeHtml(event.dueDate)} at ${time}</p>
-                </div>
-                <div class="detail-item">
-                    <label>Materials Needed</label>
-                    <p>${escapeHtml(event.materials || 'None specified')}</p>
-                </div>
-                <div class="detail-item">
-                    <label>Additional Notes</label>
-                    <p>${escapeHtml(event.description || 'No additional notes')}</p>
-                </div>
-                <div class="detail-item">
-                    <label>Priority Level</label>
-                    <p>${priorityLabels[event.priority]}</p>
-                </div>
-                <div class="detail-actions">
-                    <button class="edit-btn" onclick="editEvent(${event.id})">Edit Assignment</button>
-                    <button class="delete-btn" onclick="deleteEvent(${event.id})">Delete Assignment</button>
-                </div>
-            `;
-
-            document.getElementById('dayView').style.display = 'none';
-            document.getElementById('eventDetailView').style.display = 'block';
-        }
-
-        // -----------------------
-        // ADD / EDIT MODAL
-        // -----------------------
-        function openAddModal() {
-            editingEventId = null;
-            document.getElementById('modalTitle').textContent = 'Add Assignment';
-            document.getElementById('eventForm').reset();
-            selectedPriority = 'casual';
-            updatePrioritySelection();
-            // default date to selectedDate or today
-            const defaultDate = selectedDate || new Date().toISOString().slice(0,10);
-            document.getElementById('dueDateInput').value = defaultDate;
-            document.getElementById('eventModal').style.display = 'block';
-        }
-
-        function editEvent(eventId) {
-            let foundEvent = null, foundDate = null;
-            for (let k in events) {
-                const idx = events[k].findIndex(e => e.id === eventId);
-                if (idx !== -1) { foundEvent = events[k][idx]; foundDate = k; break; }
-            }
-            if (!foundEvent) return;
-            editingEventId = eventId;
-            document.getElementById('modalTitle').textContent = 'Edit Assignment';
-            document.getElementById('unitInput').value = foundEvent.unit;
-            document.getElementById('whereInput').value = foundEvent.where;
-            document.getElementById('dueDateInput').value = foundEvent.dueDate;
-            document.getElementById('dueTimeInput').value = foundEvent.dueTime;
-            document.getElementById('materialsInput').value = foundEvent.materials || '';
-            document.getElementById('descriptionInput').value = foundEvent.description || '';
-            selectedPriority = foundEvent.priority;
-            updatePrioritySelection();
-            document.getElementById('eventModal').style.display = 'block';
-        }
-
-        function closeModal() { document.getElementById('eventModal').style.display = 'none'; editingEventId = null; }
-        function selectPriority(p) { selectedPriority = p; updatePrioritySelection(); }
-        function updatePrioritySelection() {
-            document.querySelectorAll('.priority-option').forEach(opt => opt.classList.remove('selected'));
-            const el = document.querySelector(`.priority-option.${selectedPriority}`);
-            if (el) el.classList.add('selected');
-        }
-
-        // Form submit (add/edit)
-        document.getElementById('eventForm').onsubmit = function(e) {
-            e.preventDefault();
-
-            const unit = document.getElementById('unitInput').value;
-            const where = document.getElementById('whereInput').value;
-            const dueDate = document.getElementById('dueDateInput').value;
-            const dueTime = document.getElementById('dueTimeInput').value;
-            const materials = document.getElementById('materialsInput').value;
-            const description = document.getElementById('descriptionInput').value;
-
-            if (editingEventId !== null) {
-                // edit existing - find and replace
-                let found = false;
-                for (let key in events) {
-                    const idx = events[key].findIndex(e => e.id === editingEventId);
-                    if (idx !== -1) {
-                        events[key].splice(idx, 1);
-                        if (events[key].length === 0) delete events[key];
-                        if (!events[dueDate]) events[dueDate] = [];
-                        events[dueDate].push({ id: editingEventId, unit, where, dueDate, dueTime, materials, description, priority: selectedPriority });
-                        selectedDate = dueDate;
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    // fallback create
-                    if (!events[dueDate]) events[dueDate] = [];
-                    events[dueDate].push({ id: editingEventId, unit, where, dueDate, dueTime, materials, description, priority: selectedPriority });
-                    selectedDate = dueDate;
-                }
-            } else {
-                // add new
-                const newEvent = { id: Date.now(), unit, where, dueDate, dueTime, materials, description, priority: selectedPriority };
-                if (!events[dueDate]) events[dueDate] = [];
-                events[dueDate].push(newEvent);
-                selectedDate = dueDate;
-            }
-
-            saveEvents();
-            closeModal();
-            renderCalendar();
-
-            const [year, month, day] = selectedDate.split('-');
-            showDayView(parseInt(day), parseInt(month) - 1, parseInt(year));
-        };
-
-        function deleteEvent(eventId) {
-            if (!confirm('Are you sure you want to delete this assignment?')) return;
-            for (let key in events) {
-                const idx = events[key].findIndex(e => e.id === eventId);
-                if (idx !== -1) {
-                    events[key].splice(idx, 1);
-                    if (events[key].length === 0) delete events[key];
-                    break;
-                }
-            }
-            saveEvents();
-            renderCalendar();
-            if (selectedDate) showDayView();
-        }
-
-        // -----------------------
-        // COUNTDOWN (day view) - static flip-card visuals (no animation)
-        // -----------------------
-        function pad(n) { return String(n).padStart(2, '0'); }
-
-        function getNextDeadline() {
-            const dayEvents = events[selectedDate] || [];
-            if (dayEvents.length === 0) return null;
-            let earliest = null;
-            dayEvents.forEach(event => {
-                if (event.dueDate && event.dueTime) {
-                    const deadline = new Date(`${event.dueDate}T${event.dueTime}`);
-                    if (!earliest || deadline < earliest.deadline) earliest = { deadline, event };
-                }
-            });
-            return earliest;
-        }
-
-        function updateCountdown() {
-            const next = getNextDeadline();
-            const daysEl = document.getElementById('flipDays');
-            const hoursEl = document.getElementById('flipHours');
-            const minutesEl = document.getElementById('flipMinutes');
-            const secondsEl = document.getElementById('flipSeconds');
-            const progressText = document.getElementById('progressText');
-            const progressFill = document.getElementById('progressFill');
-            const timerSection = document.getElementById('timerSection');
-
-            if (!next) {
-                daysEl.textContent = '00';
-                hoursEl.textContent = '00';
-                minutesEl.textContent = '00';
-                secondsEl.textContent = '00';
-                progressText.textContent = 'No deadline set';
-                progressFill.style.width = '0%';
-                timerSection.className = 'timer-section';
-                progressFill.className = 'progress-fill';
-                return;
-            }
-
-            const now = new Date();
-            let diff = next.deadline - now;
-
-            if (diff <= 0) {
-                daysEl.textContent = '00';
-                hoursEl.textContent = '00';
-                minutesEl.textContent = '00';
-                secondsEl.textContent = '00';
-                progressText.textContent = 'OVERDUE!';
-                progressFill.style.width = '100%';
-                timerSection.className = 'timer-section urgent';
-                progressFill.className = 'progress-fill urgent';
-                return;
-            }
-
-            const days = Math.floor(diff / (1000*60*60*24)); diff -= days*(1000*60*60*24);
-            const hours = Math.floor(diff / (1000*60*60)); diff -= hours*(1000*60*60);
-            const minutes = Math.floor(diff / (1000*60)); diff -= minutes*(1000*60);
-            const seconds = Math.floor(diff / 1000);
-
-            daysEl.textContent = pad(days);
-            hoursEl.textContent = pad(hours);
-            minutesEl.textContent = pad(minutes);
-            secondsEl.textContent = pad(seconds);
-
-            // progress (7 days window)
-            const totalSeconds = (next.deadline - now) / 1000;
-            const maxSeconds = 7 * 24 * 60 * 60;
-            const percent = Math.max(0, ((maxSeconds - totalSeconds) / maxSeconds) * 100);
-            progressFill.style.width = Math.min(percent, 100) + '%';
-            progressText.textContent = `${days}d ${hours}h ${minutes}m`;
-
-            if (days === 0 && hours < 6) { timerSection.className = 'timer-section urgent'; progressFill.className = 'progress-fill urgent'; }
-            else if (days === 0) { timerSection.className = 'timer-section warning'; progressFill.className = 'progress-fill warning'; }
-            else if (days <= 1) { timerSection.className = 'timer-section warning'; progressFill.className = 'progress-fill warning'; }
-            else { timerSection.className = 'timer-section'; progressFill.className = 'progress-fill'; }
-        }
-
-        function startCountdown() { stopCountdown(); updateCountdown(); countdownInterval = setInterval(updateCountdown, 1000); }
-        function stopCountdown() { if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; } }
-
-        // -----------------------
-        // SUMMARIES (weekly/monthly) with static flip visuals
-        // -----------------------
-        function toggleSummaries() {
-            const panel = document.getElementById('summariesPanel');
-            const btn = document.getElementById('summariesBtn');
-            summariesVisible = !summariesVisible;
-            if (summariesVisible) {
-                panel.classList.add('open'); panel.setAttribute('aria-hidden','false');
-                btn.textContent = 'Hide Summaries';
-                renderSummaries(activeSummaryTab);
-                startSummariesCountdown();
-                setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 180);
-            } else {
-                panel.classList.remove('open'); panel.setAttribute('aria-hidden','true');
-                btn.textContent = 'View Summaries';
-                stopSummariesCountdown();
-            }
-        }
-
-        function switchSummaryTab(type) {
-            activeSummaryTab = type;
-            document.querySelectorAll('.view-tab').forEach(tab => tab.classList.toggle('active', tab.getAttribute('data-type') === type));
-            document.querySelectorAll('.overview-content').forEach(c => c.classList.remove('active'));
-            document.getElementById(type + 'Summary').classList.add('active');
-            if (summariesVisible) renderSummaries(type);
-        }
-
-        function renderSummaries(type) {
-            const now = new Date();
-            const weekStart = new Date(now); weekStart.setHours(0,0,0,0); weekStart.setDate(now.getDate() - now.getDay());
-            const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 6); weekEnd.setHours(23,59,59,999);
-
-            const targetDiv = document.getElementById(type === 'week' ? 'weekAssignments' : 'monthAssignments');
-            targetDiv.innerHTML = '';
-
-            const list = [];
-            for (let key in events) {
-                const eventDate = new Date(key + 'T00:00:00');
-                const isInWeek = eventDate >= weekStart && eventDate <= weekEnd;
-                const isInMonth = (eventDate.getMonth() === now.getMonth() && eventDate.getFullYear() === now.getFullYear());
-                if ((type === 'week' && isInWeek) || (type === 'month' && isInMonth)) {
-                    events[key].forEach(ev => list.push(Object.assign({}, ev, { date: key })));
-                }
-            }
-
-            if (list.length === 0) {
-                targetDiv.innerHTML = `<div class="overview-empty">No ${type} assignments found 📭</div>`;
-                return;
-            }
-
-            list.sort((a,b) => new Date(`${a.date}T${a.dueTime || '00:00'}`) - new Date(`${b.date}T${b.dueTime || '00:00'}`));
-
-            list.forEach(ev => {
-                const due = new Date(`${ev.date}T${ev.dueTime || '00:00'}`);
-                const uid = `s-${ev.id}-${ev.date.replace(/-/g,'')}`;
-                const dueLabel = (ev.dueTime ? `${new Date(ev.date).toDateString()} • ${formatTime(ev.dueTime)}` : new Date(ev.date).toDateString());
-                const card = document.createElement('div');
-                card.className = `overview-card ${ev.priority}`;
-                card.innerHTML = `
-                    <div class="overview-card-header">
-                        <div class="overview-card-title">
-                            <h4>${escapeHtml(ev.unit)}</h4>
-                            <p>${escapeHtml(ev.description || ev.where || 'No details provided')}</p>
-                        </div>
-                        <div class="overview-card-date">${dueLabel}</div>
-                    </div>
-                    <div class="overview-card-countdown" data-deadline="${due.toISOString()}" id="${uid}">
-                        <div class="mini-flip"><div class="mini-flip-card" data-part="days">--</div><div class="mini-flip-label">Days</div></div>
-                        <div class="mini-flip"><div class="mini-flip-card" data-part="hours">--</div><div class="mini-flip-label">Hours</div></div>
-                        <div class="mini-flip"><div class="mini-flip-card" data-part="minutes">--</div><div class="mini-flip-label">Minutes</div></div>
-                        <div class="mini-flip"><div class="mini-flip-card" data-part="seconds">--</div><div class="mini-flip-label">Seconds</div></div>
-                    </div>
-                `;
-                card.onclick = () => { selectedDate = ev.date; showEventDetail(ev); };
-                targetDiv.appendChild(card);
-            });
-
-            updateSummariesCountdown();
-        }
-
-        function startSummariesCountdown() { stopSummariesCountdown(); summariesInterval = setInterval(updateSummariesCountdown, 1000); }
-        function stopSummariesCountdown() { if (summariesInterval) { clearInterval(summariesInterval); summariesInterval = null; } }
-
-        function updateSummariesCountdown() {
-            const activeContainer = document.querySelector('.overview-content.active');
-            if (!activeContainer) return;
-            const countdowns = activeContainer.querySelectorAll('[data-deadline]');
-            const now = new Date();
-
-            countdowns.forEach(node => {
-                const deadline = new Date(node.getAttribute('data-deadline'));
-                const daysPart = node.querySelector('[data-part="days"]');
-                const hoursPart = node.querySelector('[data-part="hours"]');
-                const minutesPart = node.querySelector('[data-part="minutes"]');
-                const secondsPart = node.querySelector('[data-part="seconds"]');
-
-                if (isNaN(deadline)) {
-                    if (daysPart) daysPart.textContent = '--';
-                    if (hoursPart) hoursPart.textContent = '--';
-                    if (minutesPart) minutesPart.textContent = '--';
-                    if (secondsPart) secondsPart.textContent = '--';
-                    return;
-                }
-
-                let diff = Math.max(0, deadline - now);
-                if (diff <= 0) {
-                    if (daysPart) daysPart.textContent = '00';
-                    if (hoursPart) hoursPart.textContent = '00';
-                    if (minutesPart) minutesPart.textContent = '00';
-                    if (secondsPart) secondsPart.textContent = '00';
-                    const card = node.closest('.overview-card'); if (card && !card.classList.contains('overdue')) card.classList.add('overdue');
-                    return;
-                }
-
-                const days = Math.floor(diff / (1000*60*60*24)); diff -= days*(1000*60*60*24);
-                const hours = Math.floor(diff / (1000*60*60)); diff -= hours*(1000*60*60);
-                const minutes = Math.floor(diff / (1000*60)); diff -= minutes*(1000*60);
-                const seconds = Math.floor(diff / 1000);
-
-                if (daysPart) daysPart.textContent = pad(days);
-                if (hoursPart) hoursPart.textContent = pad(hours);
-                if (minutesPart) minutesPart.textContent = pad(minutes);
-                if (secondsPart) secondsPart.textContent = pad(seconds);
-            });
-        }
-
-        // -----------------------
-        // HELPERS
-        // -----------------------
-        window.onclick = function(event) {
-            const modal = document.getElementById('eventModal');
-            if (event.target === modal) closeModal();
-        };
-
-        function escapeHtml(str) {
-            if (!str && str !== 0) return '';
-            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-        }
-
-        function formatTime(time24) {
-            if (!time24) return '';
-            const [hours, minutes] = time24.split(':');
-            const h = parseInt(hours, 10);
-            const ampm = h >= 12 ? 'PM' : 'AM';
-            const h12 = h % 12 || 12;
-            return `${h12}:${minutes} ${ampm}`;
-        }
-
-        // -----------------------
-        // INIT
-        // -----------------------
-        loadEvents();
-        renderCalendar();
-
-        // Expose renderSummaries for debugging if needed
-        window.renderSummaries = renderSummaries;
-        window.saveEvents = saveEvents;
-        window.events = events;
-
-    </script>
+        const days = Math.floor(diff / 86400000); diff -= days * 86400000;
+        const hours = Math.floor(diff / 3600000); diff -= hours * 3600000;
+        const minutes = Math.floor(diff / 60000); diff -= minutes * 60000;
+        const seconds = Math.floor(diff / 1000);
+
+        if (daysEl) daysEl.textContent = pad(days);
+        if (hoursEl) hoursEl.textContent = pad(hours);
+        if (minsEl) minsEl.textContent = pad(minutes);
+        if (secsEl) secsEl.textContent = pad(seconds);
+      });
+    }
+
+    /* ====================
+       helpers & init
+       ==================== */
+    // close modal clicking outside
+    window.onclick = function(ev) {
+      const modal = document.getElementById('eventModal');
+      if (ev.target === modal) closeModal();
+    };
+
+    function escapeHtml(s) {
+      if (s === undefined || s === null) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    function formatTime(time24) {
+      if (!time24) return '';
+      const [h,m] = time24.split(':');
+      const hh = parseInt(h,10);
+      const ampm = hh >= 12 ? 'PM' : 'AM';
+      const h12 = hh % 12 || 12;
+      return `${h12}:${m} ${ampm}`;
+    }
+
+    // init
+    loadEvents();
+    renderCalendar();
+
+    // expose for debugging if needed
+    window.events = events;
+    window.saveEvents = saveEvents;
+  </script>
 </body>
 </html>
