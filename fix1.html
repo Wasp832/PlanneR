@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Assignment Planner Pro</title>
+  <style>
+    /* ========== base ========== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html,body { height: 100%; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);
+      color: #e0e0e0;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height: 1.35;
+      padding-bottom: 40px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+    /* ========== confetti animation ========== */
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      background: #f0f;
+      position: fixed;
+      left: 50%;
+      animation: confetti-fall 3s linear forwards;
+      z-index: 10000;
+    }
+    @keyframes confetti-fall {
+      to {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* ========== top navigation ========== */
+    .top-nav {
+      background: rgba(45, 45, 68, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 16px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .nav-left { display: flex; gap: 12px; align-items: center; }
+    .hub-back-btn {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    }
+    .hub-back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+    }
+    .nav-title {
+      font-size: 1.5rem;
+      color: #00d4ff;
+      font-weight: 700;
+    }
+    .nav-right { display: flex; gap: 10px; }
+    .nav-btn {
+      background: #1a1a2e;
+      color: #00d4ff;
+      border: 2px solid #00d4ff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    .nav-btn:hover {
+      background: #00d4ff;
+      color: #1a1a2e;
+      transform: translateY(-2px);
+    }
+
+    /* ========== stats dashboard ========== */
+    .stats-dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #2d2d44, #1a1a2e);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      border: 2px solid #444;
+      transition: all 0.3s;
+    }
+    .stat-card:hover {
+      transform: translateY(-4px);
+      border-color: #00d4ff;
+      box-shadow: 0 8px 24px rgba(0, 212, 255, 0.2);
+    }
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #00d4ff, #00b8e6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label {
+      color: #aaa;
+      font-size: 0.9rem;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    /* ========== search & filter bar ========== */
+    .control-bar {
+      background: #2d2d44;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      border: 2px solid #444;
+      border-radius: 10px;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+    .search-box input:focus {
+      outline: none;
+      border-color: #00d4ff;
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #00d4ff;
+      font-size: 1.2rem;
+    }
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      border: 2px solid #444;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: #00d4ff;
+      color: #1a1a2e;
+      border-color: #00d4ff;
+    }
+
+    /* ========== home view & header ========== */
+    #homeView {
+      background: #2d2d44;
+      border-radius: 18px;
+      padding: clamp(18px, 3.2vw, 40px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    }
+
+    .calendar-header { text-align: center; margin-bottom: clamp(10px, 2.2vw, 30px); }
+    .calendar-header h1 {
+      color: #00d4ff;
+      font-size: clamp(1.4rem, 2.6vw, 2.4rem);
+      margin-bottom: 8px;
+    }
+
+    .month-nav { display:flex; gap:12px; justify-content:center; align-items:center; margin-top: 8px; }
+    .month-nav button {
+      background:#00d4ff; color:#1a1a2e; border:none; padding:10px 16px; border-radius:8px;
+      cursor:pointer; font-weight:600; transition: background .18s, transform .12s;
+    }
+    .month-nav button:hover { background:#00b8e6; transform: translateY(-2px); }
+    .month-nav span {
+      color: #e0e0e0; font-weight:700; min-width:120px; text-align:center;
+      font-size: clamp(.95rem, 1.6vw, 1.35rem);
+    }
+
+    /* ========== calendar grid (responsive squares) ========== */
+    .cal-modern {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(36px, 1fr));
+      gap: clamp(6px, 1vw, 12px);
+      margin-top: clamp(10px, 2vw, 24px);
+    }
+    .cal-modern .day-label {
+      text-align:center; font-weight:700; color:#00d4ff;
+      padding: clamp(6px, 0.8vw, 12px);
+      font-size: clamp(.7rem, 1.2vw, .95rem);
+    }
+
+    /* keep square tiles with aspect-ratio */
+    .cal-modern .day {
+      aspect-ratio: 1 / 1;
+      display:flex; align-items:center; justify-content:center;
+      background: #1a1a2e; border-radius:12px; color:#e0e0e0;
+      cursor:pointer; transition: all .18s ease; position:relative;
+      font-size: clamp(.85rem, 1.6vw, 1.1rem); font-weight:600;
+    }
+    .cal-modern .day:hover { transform: translateY(-4px); background:#00d4ff; color:#1a1a2e; }
+    .cal-modern .day.today { background:#ff6b6b; color:#fff; }
+    .cal-modern .day.has-events::after {
+      content:''; position:absolute; bottom:8px; width:8px; height:8px; border-radius:50%;
+      background:#00d4ff; box-shadow: 0 0 6px rgba(0,212,255,0.12);
+    }
+    .cal-modern .day.workload-light { background: rgba(76, 175, 80, 0.2); }
+    .cal-modern .day.workload-medium { background: rgba(255, 170, 0, 0.2); }
+    .cal-modern .day.workload-heavy { background: rgba(255, 107, 107, 0.2); }
+    .cal-modern .day.empty { background: transparent; cursor:default; box-shadow:none; }
+
+    /* ========== summaries toggle (centered) ========== */
+    .summaries-toggle { margin-top: clamp(10px, 2vw, 20px); display:flex; justify-content:center; }
+    .summaries-btn {
+      background:#00d4ff; color:#1a1a2e; border:none; padding: clamp(8px,1.2vw,12px) clamp(14px,2vw,22px);
+      border-radius: 12px; font-weight:800; cursor:pointer; box-shadow: 0 8px 20px rgba(0,212,255,0.18);
+      font-size: clamp(.88rem, 1.6vw, 1rem);
+      transition: transform .16s, background .12s;
+    }
+    .summaries-btn:hover { transform: translateY(-3px); background:#00b8e6; }
+
+    /* smooth expand */
+    .summaries-panel {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height .5s cubic-bezier(.2,.9,.2,1), opacity .28s ease;
+      margin-top: 14px;
+    }
+    .summaries-panel.open {
+      max-height: 9999px;
+      opacity: 1;
+    }
+
+    /* ========== tabs + overview ========== */
+    .view-tabs { display:flex; justify-content:center; gap: 12px; margin-top: 8px; margin-bottom: 12px; flex-wrap:wrap; }
+    .view-tab {
+      background:#1a1a2e; color:#e0e0e0; padding:8px 14px; border-radius:8px;
+      border: 2px solid #444; cursor:pointer; font-weight:700; font-size: .95rem;
+    }
+    .view-tab:hover { border-color:#00d4ff; }
+    .view-tab.active { background:#00d4ff; color:#1a1a2e; border-color:#00d4ff; }
+
+    .overview-section { background:#1a1a2e; border-radius:12px; padding: 14px; margin-top:6px; }
+    .overview-content { display:none; }
+    .overview-content.active { display:block; }
+    .overview-empty { text-align:center; padding:28px 10px; color:#888; font-size: .95rem; }
+
+    /* grid of cards that expands naturally (no internal scroll) */
+    .overview-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+
+    .overview-card {
+      background:#2d2d44;
+      border-left:5px solid #00d4ff;
+      border-radius:10px; padding: 12px; display:flex; flex-direction:column; justify-content:space-between;
+      transition: transform .16s, box-shadow .16s;
+      position: relative;
+    }
+    .overview-card:hover { transform: translateY(-6px); box-shadow: 0 10px 20px rgba(0,0,0,0.45); }
+    .overview-card.casual { border-left-color:#4caf50; }
+    .overview-card.moderate { border-left-color:#ffaa00; }
+    .overview-card.important { border-left-color:#ff6b6b; }
+    .overview-card.urgent { border-left-color:#ff0000; }
+    .overview-card.overdue { border-left-color:#ff4444; opacity: 0.7; }
+    .overview-card.completed {
+      opacity: 0.6;
+      background: #1a1a2e;
+    }
+    .overview-card.completed .overview-card-title h4 {
+      text-decoration: line-through;
+      color: #888;
+    }
+
+    .overview-card-header { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+    .overview-card-title h4 { color:#e0e0e0; font-size: clamp(.95rem, 1.6vw, 1.15rem); margin-bottom:6px; }
+    .overview-card-title p { color:#aaa; font-size: .9rem; line-height:1.2; }
+    .overview-card-date {
+      background: rgba(0,212,255,0.12); padding:6px 10px; border-radius:6px; color:#00d4ff; font-weight:700; font-size:.8rem; white-space:nowrap;
+    }
+
+    .overview-card-countdown { display:flex; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid #444; }
+    .mini-flip { flex:1; text-align:center; }
+    .mini-flip-card {
+      background: linear-gradient(180deg,#2d3748 50%,#1a202c 50%); color:white; font-weight:800;
+      padding:8px 6px; border-radius:8px; font-size: clamp(1rem, 1.6vw, 1.2rem); box-shadow: inset 0 -4px 10px rgba(0,0,0,0.25);
+    }
+    .mini-flip-label { font-size: .7rem; color:#aaa; margin-top:6px; }
+
+    .completion-checkbox {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 24px;
+      height: 24px;
+      border: 2px solid #00d4ff;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+    .completion-checkbox:hover {
+      background: rgba(0, 212, 255, 0.1);
+      transform: scale(1.1);
+    }
+    .completion-checkbox.checked {
+      background: #4caf50;
+      border-color: #4caf50;
+    }
+    .completion-checkbox.checked::after {
+      content: '✓';
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    /* ========== day view & timer ========== */
+    #dayView { display:none; background:#2d2d44; border-radius:20px; padding:28px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); min-height:60vh; margin-top:18px; }
+    .day-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:12px; border-bottom:2px solid #444; gap:12px; }
+    .back-btn { background:#00d4ff; color:#1a1a2e; border:none; padding:10px 18px; border-radius:8px; cursor:pointer; font-weight:700; }
+    .day-title { flex:1; text-align:center; }
+    .day-title h2 { color:#00d4ff; font-size: clamp(1.1rem, 2.4vw, 2rem); }
+    .day-title p { color:#aaa; margin-top:4px; }
+
+    .timer-section { background: linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%); border-radius:14px; padding:16px; margin-bottom:18px; border:2px solid #444; }
+    .timer-flip { display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; }
+    .flip-unit { text-align:center; }
+    .flip-card {
+      background: linear-gradient(180deg,#2d3748 50%,#1a202c 50%); color:white; font-weight:800; padding:12px 16px; border-radius:10px;
+      min-width: 68px; font-size: clamp(1.2rem, 2.4vw, 2rem); text-align:center;
+    }
+    .flip-label { font-size:.85rem; color:#fff; margin-top:6px; opacity:0.95; }
+
+    .timer-progress { width:100%; margin-top:10px; }
+    .progress-bar { width:100%; height:44px; background: rgba(255,255,255,0.06); border-radius:22px; overflow:hidden; }
+    .progress-fill { height:100%; background:#00d4ff; display:flex; align-items:center; justify-content:flex-end; padding-right:16px; color:#1a1a2e; font-weight:800; transition: width 1s linear; }
+
+    /* ========== events list ========== */
+    .events-section { margin-top:12px; }
+    .events-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .events-header h3 { font-size: clamp(1.0rem, 2.0vw, 1.5rem); color:#e0e0e0; }
+    .add-event-btn { background:#00d4ff; color:#1a1a2e; border:none; width:48px; height:48px; border-radius:50%; font-size:1.6rem; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 6px 16px rgba(0,212,255,0.28); }
+    .events-list { display:flex; flex-direction:column; gap:12px; }
+
+    .event-card {
+      background:#1a1a2e; border-radius:10px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.32); border-left:5px solid #00d4ff;
+      position: relative;
+    }
+    .event-card.casual { border-left-color:#4caf50; }
+    .event-card.moderate { border-left-color:#ffaa00; }
+    .event-card.important { border-left-color:#ff6b6b; }
+    .event-card.urgent { border-left-color:#ff0000; }
+    .event-card.completed {
+      opacity: 0.6;
+      background: #16213e;
+    }
+    .event-card.completed .event-info h4 {
+      text-decoration: line-through;
+      color: #888;
+    }
+    .event-info h4 { font-size:1rem; margin-bottom:4px; color:#fff; }
+    .event-info p { color:#bdbdbd; font-size:.92rem; }
+    .event-time { font-weight:800; }
+
+    /* ========== modal & form ========== */
+    .modal { display:none; position:fixed; inset:0; background: rgba(0,0,0,0.8); z-index:999; padding:18px; overflow:auto; }
+    .modal-content { background:#2d2d44; max-width:640px; margin:40px auto; padding:20px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.6); }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:2px solid #444; padding-bottom:10px; }
+    .modal-header h2 { color:#00d4ff; font-size:1.4rem; }
+    .close-btn { background:none; border:none; color:#bbb; font-size:1.4rem; cursor:pointer; }
+    .form-group { margin-bottom:12px; }
+    .form-group label { display:block; color:#00d4ff; margin-bottom:6px; font-weight:700; }
+    .form-group input, .form-group textarea, .form-group select {
+      width:100%; padding:10px 12px; border-radius:8px; border:2px solid #444; background:#1a1a2e; color:#e0e0e0;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      outline: none;
+      border-color: #00d4ff;
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+    }
+    .priority-options { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .priority-option { padding:10px; border-radius:8px; border:2px solid #444; text-align:center; cursor:pointer; font-weight:700; color:#e0e0e0; transition: all 0.3s; }
+    .priority-option:hover { border-color: #00d4ff; transform: scale(1.05); }
+    .priority-option.selected { 
+      border-color: #00d4ff;
+      background: rgba(0, 212, 255, 0.1);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+    }
+    .form-actions { display:flex; gap:10px; margin-top:12px; }
+    .submit-btn { background:#00d4ff; color:#1a1a2e; border:none; padding:10px 16px; border-radius:8px; font-weight:800; cursor:pointer; flex: 1; transition: all 0.3s; }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4); }
+    .cancel-btn { background:#444; color:#e0e0e0; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; flex: 1; transition: all 0.3s; }
+    .cancel-btn:hover { background: #555; }
+
+    /* ========== responsive tweaks ========== */
+    @media (max-width: 1100px) {
+      .cal-modern { gap: 8px; }
+      .overview-list { gap:10px; }
+    }
+    @media (max-width: 760px) {
+      .cal-modern { grid-template-columns: repeat(7, minmax(28px, 1fr)); gap:6px; }
+      .cal-modern .day { font-size: clamp(.72rem, 1.8vw, .9rem); border-radius:10px; }
+      .modal-content { margin: 18px auto; padding:12px; }
+      .flip-card { font-size: clamp(1.1rem, 3vw, 1.5rem); min-width:56px; padding:9px 12px; }
+      .stats-dashboard { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 420px) {
+      .cal-modern { grid-template-columns: repeat(7, minmax(22px, 1fr)); gap:4px; }
+      .calendar-header h1 { font-size:1.15rem; }
+      .month-nav span { font-size:.95rem; }
+      .overview-list { grid-template-columns: 1fr; gap:8px; }
+      .stats-dashboard { grid-template-columns: 1fr; }
+      .control-bar { flex-direction: column; }
+      .search-box { width: 100%; }
+    }
+
+    /* ========== no events state ========== */
+    .no-events {
+      text-align: center;
+      padding: 60px 20px;
+      color: #888;
+    }
+    .no-events-icon {
+      font-size: 4rem;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <div class="nav-left">
+        <button class="hub-back-btn" onclick="goToHub()">← Back to Hub</button>
+        <span class="nav-title">📚 Assignment Planner Pro</span>
+      </div>
+      <div class="nav-right">
+        <button class="nav-btn" onclick="exportData()">💾 Export</button>
+        <button class="nav-btn" onclick="importData()">📥 Import</button>
+        <button class="nav-btn" onclick="showSettings()">⚙️</button>
+      </div>
+    </div>
+
+    <!-- Stats Dashboard -->
+    <div class="stats-dashboard">
+      <div class="stat-card">
+        <div class="stat-value" id="totalAssignments">0</div>
+        <div class="stat-label">Total Assignments</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="completedAssignments">0</div>
+        <div class="stat-label">Completed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="pendingAssignments">0</div>
+        <div class="stat-label">Pending</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="overdueAssignments">0</div>
+        <div class="stat-label">Overdue</div>
+      </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="control-bar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search assignments..." oninput="filterAssignments()">
+      </div>
+      <div class="filter-group">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+        <button class="filter-btn" data-filter="pending" onclick="setFilter('pending')">Pending</button>
+        <button class="filter-btn" data-filter="completed" onclick="setFilter('completed')">Completed</button>
+        <button class="filter-btn" data-filter="overdue" onclick="setFilter('overdue')">Overdue</button>
+      </div>
+    </div>
+
+    <div id="homeView">
+      <div class="calendar-header">
+        <h1>📅 Calendar View</h1>
+        <div class="month-nav">
+          <button onclick="changeMonth(-1)">← Prev</button>
+          <span id="currentMonth">October 2025</span>
+          <button onclick="changeMonth(1)">Next →</button>
+        </div>
+      </div>
+
+      <div class="cal-modern" id="calendar"></div>
+
+      <!-- centered summaries toggle -->
+      <div class="summaries-toggle">
+        <button id="summariesBtn" class="summaries-btn" onclick="toggleSummaries()">View Summaries</button>
+      </div>
+
+      <!-- summaries panel -->
+      <div id="summariesPanel" class="summaries-panel" aria-hidden="true">
+        <div class="view-tabs" role="tablist" aria-label="Summaries">
+          <div class="view-tab active" data-type="week" onclick="switchSummaryTab('week')">Weekly Summary</div>
+          <div class="view-tab" data-type="month" onclick="switchSummaryTab('month')">Monthly Summary</div>
+        </div>
+
+        <div class="overview-section">
+          <div id="weekSummary" class="overview-content active">
+            <div id="weekAssignments" class="overview-list"></div>
+          </div>
+          <div id="monthSummary" class="overview-content">
+            <div id="monthAssignments" class="overview-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day View (hidden until a day is clicked) -->
+    <div id="dayView">
+      <div class="day-header">
+        <button class="back-btn" onclick="showHomeView()">← Back to Calendar</button>
+        <div class="day-title">
+          <h2 id="selectedDayTitle">Monday, October 8</h2>
+          <p id="selectedDayDate">2025</p>
+        </div>
+        <div style="width:120px"></div>
+      </div>
+
+      <!-- Timer -->
+      <div class="timer-section" id="timerSection">
+        <div class="timer-flip">
+          <div class="flip-unit">
+            <div class="flip-card" id="flipDays">00</div>
+            <div class="flip-label">Days</div>
+          </div>
+          <div class="flip-unit">
+            <div class="flip-card" id="flipHours">00</div>
+            <div class="flip-label">Hours</div>
+          </div>
+          <div class="flip-unit">
+            <div class="flip-card" id="flipMinutes">00</div>
+            <div class="flip-label">Minutes</div>
+          </div>
+          <div class="flip-unit">
+            <div class="flip-card" id="flipSeconds">00</div>
+            <div class="flip-label">Seconds</div>
+          </div>
+        </div>
+        <div class="timer-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%">
+              <span id="progressText">No deadline set</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- events -->
+      <div class="events-section">
+        <div class="events-header">
+          <h3>Today's Assignments</h3>
+          <button class="add-event-btn" onclick="openAddModal()">+</button>
+        </div>
+        <div id="eventsContainer"></div>
+      </div>
+    </div>
+
+    <!-- event detail -->
+    <div id="eventDetailView" style="display:none;">
+      <div class="detail-header">
+        <button class="back-btn" onclick="showDayView()">← Back to Day</button>
+        <h2 style="color:#00d4ff; flex:1; text-align:center">Assignment Details</h2>
+        <div style="width:120px"></div>
+      </div>
+      <div class="detail-content" id="eventDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- modal for add/edit -->
+  <div class="modal" id="eventModal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Add Assignment</h2>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <form id="eventForm">
+        <div class="form-group">
+          <label for="unitInput">Unit/Course *</label>
+          <input id="unitInput" type="text" required placeholder="e.g., Mathematics 101" />
+        </div>
+        <div class="form-group">
+          <label for="whereInput">Where to Get Assignment *</label>
+          <input id="whereInput" type="text" required placeholder="e.g., Online portal" />
+        </div>
+        <div class="form-group">
+          <label for="dueDateInput">Due Date *</label>
+          <input id="dueDateInput" type="date" required />
+        </div>
+        <div class="form-group">
+          <label for="dueTimeInput">Due Time *</label>
+          <input id="dueTimeInput" type="time" required />
+        </div>
+        <div class="form-group">
+          <label for="estimatedHoursInput">Estimated Hours to Complete</label>
+          <input id="estimatedHoursInput" type="number" min="0" step="0.5" placeholder="e.g., 2.5" />
+        </div>
+        <div class="form-group">
+          <label for="materialsInput">Materials Needed</label>
+          <textarea id="materialsInput" placeholder="List materials..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="descriptionInput">Additional Notes</label>
+          <textarea id="descriptionInput" placeholder="Any additional details..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Priority Level *</label>
+          <div class="priority-options">
+            <div class="priority-option casual" onclick="selectPriority('casual')">🟢 Casual</div>
+            <div class="priority-option moderate" onclick="selectPriority('moderate')">🟡 Moderate</div>
+            <div class="priority-option important" onclick="selectPriority('important')">🟠 Important</div>
+            <div class="priority-option urgent" onclick="selectPriority('urgent')">🔴 Urgent</div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="submit-btn">Save Assignment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    /* ====================
+       Data + persistence
+       ==================== */
+    let events = {};
+    let currentDate = new Date();
+    let selectedDate = null;
+    let countdownInterval = null;
+    let summariesInterval = null;
+    let summariesVisible = false;
+    let activeSummaryTab = 'week';
+    let editingEventId = null;
+    let selectedPriority = 'casual';
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    function loadEvents() {
+      const raw = localStorage.getItem('assignments');
+      if (!raw) { events = {}; return; }
+      try { events = JSON.parse(raw) || {}; } catch (e) { events = {}; }
+    }
+
+    function saveEvents() {
+      localStorage.setItem('assignments', JSON.stringify(events));
+      updateStats();
+      if (summariesVisible) renderSummaries(activeSummaryTab);
+      renderCalendar();
+    }
+
+    /* ====================
+       Stats Dashboard
+       ==================== */
+    function updateStats() {
+      let total = 0, completed = 0, pending = 0, overdue = 0;
+      const now = new Date();
+
+      for (const key in events) {
+        events[key].forEach(ev => {
+          total++;
+          if (ev.completed) {
+            completed++;
+          } else {
+            const dueDate = new Date(`${ev.dueDate}T${ev.dueTime || '23:59'}`);
+            if (dueDate < now) {
+              overdue++;
+            } else {
+              pending++;
+            }
+          }
+        });
+      }
+
+      document.getElementById('totalAssignments').textContent = total;
+      document.getElementById('completedAssignments').textContent = completed;
+      document.getElementById('pendingAssignments').textContent = pending;
+      document.getElementById('overdueAssignments').textContent = overdue;
+    }
+
+    /* ====================
+       Search & Filter
+       ==================== */
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-filter') === filter);
+      });
+      if (summariesVisible) renderSummaries(activeSummaryTab);
+    }
+
+    function filterAssignments() {
+      searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      if (summariesVisible) renderSummaries(activeSummaryTab);
+    }
+
+    function matchesFilter(ev) {
+      const now = new Date();
+      const dueDate = new Date(`${ev.dueDate}T${ev.dueTime || '23:59'}`);
+      
+      if (currentFilter === 'completed' && !ev.completed) return false;
+      if (currentFilter === 'pending' && (ev.completed || dueDate < now)) return false;
+      if (currentFilter === 'overdue' && (ev.completed || dueDate >= now)) return false;
+      
+      if (searchQuery) {
+        const searchable = `${ev.unit} ${ev.where} ${ev.description || ''}`.toLowerCase();
+        if (!searchable.includes(searchQuery)) return false;
+      }
+      
+      return true;
+    }
+
+    /* ====================
+       Calendar rendering
+       ==================== */
+    function getWorkloadForDay(year, month, day) {
+      const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const dayEvents = events[dateKey] || [];
+      const activeEvents = dayEvents.filter(e => !e.completed);
+      
+      if (activeEvents.length === 0) return '';
+      if (activeEvents.length <= 2) return 'workload-light';
+      if (activeEvents.length <= 4) return 'workload-medium';
+      return 'workload-heavy';
+    }
+
+    function renderCalendar() {
+      const calendar = document.getElementById('calendar');
+      calendar.innerHTML = '';
+
+      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      days.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'day-label';
+        el.textContent = d;
+        calendar.appendChild(el);
+      });
+
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const today = new Date();
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'day empty';
+        calendar.appendChild(empty);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const day = document.createElement('div');
+        day.className = 'day';
+        day.textContent = d;
+
+        const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const workload = getWorkloadForDay(year, month, d);
+        if (workload) day.classList.add(workload);
+        
+        if (events[dateKey] && events[dateKey].length > 0) day.classList.add('has-events');
+        if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) day.classList.add('today');
+
+        day.onclick = () => showDayView(d, month, year);
+        calendar.appendChild(day);
+      }
+      updateMonthDisplay();
+    }
+
+    function updateMonthDisplay() {
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      document.getElementById('currentMonth').textContent = `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    }
+
+    function changeMonth(delta) {
+      currentDate.setMonth(currentDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    /* ====================
+       Confetti celebration
+       ==================== */
+    function celebrate() {
+      const colors = ['#00d4ff', '#ff6b6b', '#4caf50', '#ffaa00', '#ff00ff'];
+      for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.style.left = Math.random() * 100 + '%';
+          confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.animationDelay = Math.random() * 0.5 + 's';
+          confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+          document.body.appendChild(confetti);
+          setTimeout(() => confetti.remove(), 3000);
+        }, i * 30);
+      }
+    }
+
+    /* ====================
+       Toggle completion
+       ==================== */
+    function toggleCompletion(eventId, e) {
+      e.stopPropagation();
+      for (const k in events) {
+        const idx = events[k].findIndex(ev => ev.id === eventId);
+        if (idx !== -1) {
+          events[k][idx].completed = !events[k][idx].completed;
+          if (events[k][idx].completed) {
+            celebrate();
+          }
+          saveEvents();
+          if (selectedDate) renderEvents();
+          if (summariesVisible) renderSummaries(activeSummaryTab);
+          break;
+        }
+      }
+    }
+
+    /* ====================
+       Views + events list
+       ==================== */
+    function showHomeView() {
+      document.getElementById('homeView').style.display = 'block';
+      document.getElementById('dayView').style.display = 'none';
+      document.getElementById('eventDetailView').style.display = 'none';
+      stopCountdown();
+    }
+
+    function showDayView(day, month, year) {
+      if (day === undefined) {
+        const parts = selectedDate.split('-');
+        year = parseInt(parts[0]); month = parseInt(parts[1]) - 1; day = parseInt(parts[2]);
+      } else {
+        selectedDate = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      }
+
+      const date = new Date(year, month, day);
+      const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+      document.getElementById('selectedDayTitle').textContent = `${dayNames[date.getDay()]}, ${monthNames[month]} ${day}`;
+      document.getElementById('selectedDayDate').textContent = year;
+
+      renderEvents();
+      startCountdown();
+
+      document.getElementById('homeView').style.display = 'none';
+      document.getElementById('dayView').style.display = 'block';
+      document.getElementById('eventDetailView').style.display = 'none';
+    }
+
+    function renderEvents() {
+      const container = document.getElementById('eventsContainer');
+      const dayEvents = events[selectedDate] || [];
+
+      if (dayEvents.length === 0) {
+        container.innerHTML = `
+          <div class="no-events">
+            <div class="no-events-icon">📭</div>
+            <p>No assignments scheduled for this day</p>
+            <p style="margin-top:10px;color:#888">Click + to add an assignment</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = '<div class="events-list"></div>';
+      const list = container.querySelector('.events-list');
+
+      dayEvents.sort((a,b) => (a.dueTime||'00:00').localeCompare(b.dueTime||'00:00'));
+
+      dayEvents.forEach(ev => {
+        const card = document.createElement('div');
+        card.className = `event-card ${ev.priority}`;
+        if (ev.completed) card.classList.add('completed');
+        
+        const time = ev.dueTime ? formatTime(ev.dueTime) : 'No time set';
+        card.innerHTML = `
+          <div class="completion-checkbox ${ev.completed ? 'checked' : ''}" onclick="toggleCompletion(${ev.id}, event)"></div>
+          <div class="event-info" onclick="showEventDetail(${JSON.stringify(ev).replace(/"/g, '&quot;')})">
+            <h4>${escapeHtml(ev.unit)}</h4>
+            <p>${escapeHtml(ev.where)}</p>
+          </div>
+          <div class="event-time" onclick="showEventDetail(${JSON.stringify(ev).replace(/"/g, '&quot;')})">${time}</div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function showEventDetail(event) {
+      const content = document.getElementById('eventDetailContent');
+      const time = event.dueTime ? formatTime(event.dueTime) : 'No time set';
+      const labels = { casual:'🟢 Casual', moderate:'🟡 Moderate', important:'🟠 Important', urgent:'🔴 Urgent' };
+      const estimatedHours = event.estimatedHours ? `${event.estimatedHours} hours` : 'Not specified';
+      
+      content.innerHTML = `
+        <div class="detail-item"><label>Unit/Course</label><p>${escapeHtml(event.unit)}</p></div>
+        <div class="detail-item"><label>Where to Get Assignment</label><p>${escapeHtml(event.where)}</p></div>
+        <div class="detail-item"><label>Due Date & Time</label><p>${escapeHtml(event.dueDate)} at ${time}</p></div>
+        <div class="detail-item"><label>Estimated Time</label><p>${estimatedHours}</p></div>
+        <div class="detail-item"><label>Materials Needed</label><p>${escapeHtml(event.materials||'None specified')}</p></div>
+        <div class="detail-item"><label>Additional Notes</label><p>${escapeHtml(event.description||'No additional notes')}</p></div>
+        <div class="detail-item"><label>Priority Level</label><p>${labels[event.priority]}</p></div>
+        <div class="detail-item"><label>Status</label><p>${event.completed ? '✅ Completed' : '⏳ Pending'}</p></div>
+        <div class="detail-actions">
+          <button class="edit-btn" onclick="editEvent(${event.id})">Edit Assignment</button>
+          <button class="delete-btn" onclick="deleteEvent(${event.id})">Delete Assignment</button>
+          <button class="submit-btn" onclick="toggleCompletion(${event.id}, event); showDayView();">
+            ${event.completed ? 'Mark Incomplete' : 'Mark Complete'}
+          </button>
+        </div>`;
+      document.getElementById('homeView').style.display = 'none';
+      document.getElementById('dayView').style.display = 'none';
+      document.getElementById('eventDetailView').style.display = 'block';
+    }
+
+    /* ====================
+       Add / edit modal
+       ==================== */
+    function openAddModal() {
+      editingEventId = null;
+      document.getElementById('modalTitle').textContent = 'Add Assignment';
+      document.getElementById('eventForm').reset();
+      selectedPriority = 'casual';
+      updatePrioritySelection();
+      const defaultDate = selectedDate || new Date().toISOString().slice(0,10);
+      document.getElementById('dueDateInput').value = defaultDate;
+      document.getElementById('eventModal').style.display = 'block';
+      document.getElementById('eventModal').setAttribute('aria-hidden','false');
+    }
+
+    function editEvent(eventId) {
+      let found=null, foundKey=null;
+      for (const k in events) {
+        const idx = events[k].findIndex(e => e.id === eventId);
+        if (idx !== -1) { found = events[k][idx]; foundKey = k; break; }
+      }
+      if (!found) return;
+      editingEventId = eventId;
+      document.getElementById('modalTitle').textContent = 'Edit Assignment';
+      document.getElementById('unitInput').value = found.unit;
+      document.getElementById('whereInput').value = found.where;
+      document.getElementById('dueDateInput').value = found.dueDate;
+      document.getElementById('dueTimeInput').value = found.dueTime;
+      document.getElementById('estimatedHoursInput').value = found.estimatedHours || '';
+      document.getElementById('materialsInput').value = found.materials || '';
+      document.getElementById('descriptionInput').value = found.description || '';
+      selectedPriority = found.priority;
+      updatePrioritySelection();
+      document.getElementById('eventModal').style.display = 'block';
+      document.getElementById('eventModal').setAttribute('aria-hidden','false');
+    }
+
+    function closeModal() {
+      document.getElementById('eventModal').style.display = 'none';
+      document.getElementById('eventModal').setAttribute('aria-hidden','true');
+      editingEventId = null;
+    }
+
+    function selectPriority(p) { selectedPriority = p; updatePrioritySelection(); }
+    function updatePrioritySelection() {
+      document.querySelectorAll('.priority-option').forEach(el => el.classList.remove('selected'));
+      const el = document.querySelector('.priority-option.' + selectedPriority);
+      if (el) el.classList.add('selected');
+    }
+
+    document.getElementById('eventForm').onsubmit = function(e) {
+      e.preventDefault();
+      const unit = document.getElementById('unitInput').value.trim();
+      const where = document.getElementById('whereInput').value.trim();
+      const dueDate = document.getElementById('dueDateInput').value;
+      const dueTime = document.getElementById('dueTimeInput').value;
+      const estimatedHours = document.getElementById('estimatedHoursInput').value;
+      const materials = document.getElementById('materialsInput').value.trim();
+      const description = document.getElementById('descriptionInput').value.trim();
+
+      if (!unit || !where || !dueDate) { alert('Please fill required fields.'); return; }
+
+      if (editingEventId !== null) {
+        // remove old then add updated (handles date-change)
+        for (const k in events) {
+          const idx = events[k].findIndex(e => e.id === editingEventId);
+          if (idx !== -1) {
+            const oldCompleted = events[k][idx].completed;
+            events[k].splice(idx,1);
+            if (events[k].length === 0) delete events[k];
+            const updated = { 
+              id: editingEventId, unit, where, dueDate, dueTime, estimatedHours, materials, description, 
+              priority: selectedPriority, completed: oldCompleted 
+            };
+            if (!events[dueDate]) events[dueDate] = [];
+            events[dueDate].push(updated);
+            break;
+          }
+        }
+        selectedDate = dueDate;
+      } else {
+        const newEvent = { 
+          id: Date.now(), unit, where, dueDate, dueTime, estimatedHours, materials, description, 
+          priority: selectedPriority, completed: false 
+        };
+        if (!events[dueDate]) events[dueDate] = [];
+        events[dueDate].push(newEvent);
+        selectedDate = dueDate;
+      }
+
+      saveEvents();
+      closeModal();
+      const [y,m,d] = selectedDate.split('-');
+      showDayView(parseInt(d), parseInt(m)-1, parseInt(y));
+    };
+
+    function deleteEvent(eventId) {
+      if (!confirm('Are you sure you want to delete this assignment?')) return;
+      for (const k in events) {
+        const idx = events[k].findIndex(e => e.id === eventId);
+        if (idx !== -1) {
+          events[k].splice(idx,1);
+          if (events[k].length === 0) delete events[k];
+          break;
+        }
+      }
+      saveEvents();
+      if (selectedDate) showDayView();
+    }
+
+    /* ====================
+       Countdown day-view
+       ==================== */
+    function pad(n){ return String(n).padStart(2,'0'); }
+
+    function getNextDeadline() {
+      const dayEvents = events[selectedDate] || [];
+      const activeEvents = dayEvents.filter(e => !e.completed);
+      if (activeEvents.length === 0) return null;
+      
+      let earliest = null;
+      activeEvents.forEach(ev => {
+        if (ev.dueDate && ev.dueTime) {
+          const d = new Date(ev.dueDate + 'T' + ev.dueTime);
+          if (!earliest || d < earliest.deadline) earliest = { deadline: d, ev };
+        }
+      });
+      return earliest;
+    }
+
+    function updateCountdown() {
+      const next = getNextDeadline();
+      const daysEl = document.getElementById('flipDays');
+      const hoursEl = document.getElementById('flipHours');
+      const minutesEl = document.getElementById('flipMinutes');
+      const secondsEl = document.getElementById('flipSeconds');
+      const progressText = document.getElementById('progressText');
+      const progressFill = document.getElementById('progressFill');
+      const timerSection = document.getElementById('timerSection');
+
+      if (!next) {
+        daysEl.textContent = '00'; hoursEl.textContent = '00'; minutesEl.textContent = '00'; secondsEl.textContent = '00';
+        progressText.textContent = 'No deadline set'; progressFill.style.width = '0%';
+        timerSection.className = 'timer-section';
+        progressFill.className = 'progress-fill';
+        return;
+      }
+
+      const now = new Date();
+      let diff = next.deadline - now;
+
+      if (diff <= 0) {
+        daysEl.textContent = '00'; hoursEl.textContent = '00'; minutesEl.textContent = '00'; secondsEl.textContent = '00';
+        progressText.textContent = 'OVERDUE!'; progressFill.style.width = '100%';
+        timerSection.className = 'timer-section urgent'; progressFill.className = 'progress-fill urgent';
+        return;
+      }
+
+      const days = Math.floor(diff / (1000*60*60*24)); diff -= days*(1000*60*60*24);
+      const hours = Math.floor(diff / (1000*60*60)); diff -= hours*(1000*60*60);
+      const minutes = Math.floor(diff / (1000*60)); diff -= minutes*(1000*60);
+      const seconds = Math.floor(diff / 1000);
+
+      daysEl.textContent = pad(days); hoursEl.textContent = pad(hours); minutesEl.textContent = pad(minutes); secondsEl.textContent = pad(seconds);
+
+      const totalSeconds = (next.deadline - now) / 1000;
+      const maxSeconds = 7 * 24 * 60 * 60;
+      const percent = Math.max(0, ((maxSeconds - totalSeconds) / maxSeconds) * 100);
+      progressFill.style.width = Math.min(percent, 100) + '%';
+      progressText.textContent = `${days}d ${hours}h ${minutes}m`;
+
+      if (days === 0 && hours < 6) { timerSection.className='timer-section urgent'; progressFill.className='progress-fill urgent'; }
+      else if (days === 0) { timerSection.className='timer-section warning'; progressFill.className='progress-fill warning'; }
+      else if (days <= 1) { timerSection.className='timer-section warning'; progressFill.className='progress-fill warning'; }
+      else { timerSection.className='timer-section'; progressFill.className='progress-fill'; }
+    }
+
+    function startCountdown() { stopCountdown(); updateCountdown(); countdownInterval = setInterval(updateCountdown, 1000); }
+    function stopCountdown() { if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; } }
+
+    /* ====================
+       Summaries (week / month)
+       ==================== */
+    function toggleSummaries() {
+      const panel = document.getElementById('summariesPanel');
+      const btn = document.getElementById('summariesBtn');
+      summariesVisible = !summariesVisible;
+      if (summariesVisible) {
+        panel.classList.add('open'); panel.setAttribute('aria-hidden','false');
+        btn.textContent = 'Hide Summaries';
+        renderSummaries(activeSummaryTab);
+        startSummariesCountdown();
+        setTimeout(()=> panel.scrollIntoView({ behavior:'smooth', block:'start' }), 180);
+      } else {
+        panel.classList.remove('open'); panel.setAttribute('aria-hidden','true');
+        btn.textContent = 'View Summaries';
+        stopSummariesCountdown();
+      }
+    }
+
+    function switchSummaryTab(type) {
+      activeSummaryTab = type;
+      document.querySelectorAll('.view-tab').forEach(tab => tab.classList.toggle('active', tab.getAttribute('data-type') === type));
+      document.querySelectorAll('.overview-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(type + 'Summary').classList.add('active');
+      if (summariesVisible) renderSummaries(type);
+    }
+
+    function renderSummaries(type) {
+      const now = new Date();
+      const weekStart = new Date(now); weekStart.setHours(0,0,0,0); weekStart.setDate(now.getDate() - now.getDay());
+      const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6); weekEnd.setHours(23,59,59,999);
+
+      const target = document.getElementById(type === 'week' ? 'weekAssignments' : 'monthAssignments');
+      target.innerHTML = '';
+
+      const list = [];
+      for (const key in events) {
+        const eventDate = new Date(key + 'T00:00:00');
+        const inWeek = eventDate >= weekStart && eventDate <= weekEnd;
+        const inMonth = (eventDate.getMonth() === now.getMonth() && eventDate.getFullYear() === now.getFullYear());
+        if ((type === 'week' && inWeek) || (type === 'month' && inMonth)) {
+          events[key].forEach(ev => {
+            if (matchesFilter(ev)) {
+              list.push(Object.assign({}, ev, { date: key }));
+            }
+          });
+        }
+      }
+
+      if (list.length === 0) { 
+        target.innerHTML = `<div class="overview-empty">No ${type} assignments found 📭</div>`; 
+        return; 
+      }
+
+      list.sort((a,b) => new Date(`${a.date}T${a.dueTime||'00:00'}`) - new Date(`${b.date}T${b.dueTime||'00:00'}`));
+
+      list.forEach(ev => {
+        const due = new Date(`${ev.date}T${ev.dueTime||'00:00'}`);
+        const card = document.createElement('div');
+        card.className = `overview-card ${ev.priority}`;
+        if (ev.completed) card.classList.add('completed');
+        
+        const dueLabel = (ev.dueTime ? `${new Date(ev.date).toDateString()} • ${formatTime(ev.dueTime)}` : new Date(ev.date).toDateString());
+        card.innerHTML = `
+          <div class="completion-checkbox ${ev.completed ? 'checked' : ''}" onclick="toggleCompletion(${ev.id}, event)"></div>
+          <div class="overview-card-header">
+            <div class="overview-card-title">
+              <h4>${escapeHtml(ev.unit)}</h4>
+              <p>${escapeHtml(ev.description || ev.where || 'No details provided')}</p>
+            </div>
+            <div class="overview-card-date">${dueLabel}</div>
+          </div>
+          <div class="overview-card-countdown" data-deadline="${due.toISOString()}">
+            <div class="mini-flip"><div class="mini-flip-card" data-part="days">--</div><div class="mini-flip-label">Days</div></div>
+            <div class="mini-flip"><div class="mini-flip-card" data-part="hours">--</div><div class="mini-flip-label">Hours</div></div>
+            <div class="mini-flip"><div class="mini-flip-card" data-part="minutes">--</div><div class="mini-flip-label">Minutes</div></div>
+            <div class="mini-flip"><div class="mini-flip-card" data-part="seconds">--</div><div class="mini-flip-label">Seconds</div></div>
+          </div>
+        `;
+        card.onclick = (e) => { 
+          if (!e.target.classList.contains('completion-checkbox')) {
+            selectedDate = ev.date; 
+            showEventDetail(ev); 
+          }
+        };
+        target.appendChild(card);
+      });
+
+      updateSummariesCountdown();
+    }
+
+    function startSummariesCountdown() { stopSummariesCountdown(); summariesInterval = setInterval(updateSummariesCountdown, 1000); }
+    function stopSummariesCountdown() { if (summariesInterval) { clearInterval(summariesInterval); summariesInterval = null; } }
+
+    function updateSummariesCountdown() {
+      const container = document.querySelector('.overview-content.active');
+      if (!container) return;
+      const nodes = container.querySelectorAll('[data-deadline]');
+      const now = new Date();
+      nodes.forEach(node => {
+        const card = node.closest('.overview-card');
+        if (card && card.classList.contains('completed')) {
+          const daysEl = node.querySelector('[data-part="days"]');
+          const hoursEl = node.querySelector('[data-part="hours"]');
+          const minsEl = node.querySelector('[data-part="minutes"]');
+          const secsEl = node.querySelector('[data-part="seconds"]');
+          if (daysEl) daysEl.textContent='✓'; if (hoursEl) hoursEl.textContent='✓';
+          if (minsEl) minsEl.textContent='✓'; if (secsEl) secsEl.textContent='✓';
+          return;
+        }
+        
+        const deadline = new Date(node.getAttribute('data-deadline'));
+        const daysEl = node.querySelector('[data-part="days"]');
+        const hoursEl = node.querySelector('[data-part="hours"]');
+        const minsEl = node.querySelector('[data-part="minutes"]');
+        const secsEl = node.querySelector('[data-part="seconds"]');
+
+        if (isNaN(deadline)) {
+          if (daysEl) daysEl.textContent='--'; if (hoursEl) hoursEl.textContent='--';
+          if (minsEl) minsEl.textContent='--'; if (secsEl) secsEl.textContent='--';
+          return;
+        }
+
+        let diff = Math.max(0, deadline - now);
+        if (diff <= 0) {
+          if (daysEl) daysEl.textContent='00'; if (hoursEl) hoursEl.textContent='00';
+          if (minsEl) minsEl.textContent='00'; if (secsEl) secsEl.textContent='00';
+          if (card) card.classList.add('overdue');
+          return;
+        }
+
+        const days = Math.floor(diff / 86400000); diff -= days * 86400000;
+        const hours = Math.floor(diff / 3600000); diff -= hours * 3600000;
+        const minutes = Math.floor(diff / 60000); diff -= minutes * 60000;
+        const seconds = Math.floor(diff / 1000);
+
+        if (daysEl) daysEl.textContent = pad(days);
+        if (hoursEl) hoursEl.textContent = pad(hours);
+        if (minsEl) minsEl.textContent = pad(minutes);
+        if (secsEl) secsEl.textContent = pad(seconds);
+      });
+    }
+
+    /* ====================
+       Import/Export
+       ==================== */
+    function exportData() {
+      const dataStr = JSON.stringify(events, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `assignments-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      alert('✅ Data exported successfully!');
+    }
+
+    function importData() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const imported = JSON.parse(event.target.result);
+            if (confirm('This will replace all current data. Continue?')) {
+              events = imported;
+              saveEvents();
+              renderCalendar();
+              alert('✅ Data imported successfully!');
+            }
+          } catch (err) {
+            alert('❌ Error importing data. Please check the file format.');
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    function showSettings() {
+      alert('⚙️ Settings feature coming soon!\n\nPlanned features:\n• Theme customization\n• Notification preferences\n• Data management\n• Default priorities');
+    }
+
+    function goToHub() {
+      // This would navigate back to your Zen Hub
+      // For now, just show an alert
+      if (confirm('Return to Zen Hub? (This would navigate to your hub page)')) {
+        // window.location.href = '/zen-hub.html'; // Uncomment when integrated
+        alert('🌸 Navigation to Zen Hub would happen here');
+      }
+    }
+
+    /* ====================
+       helpers & init
+       ==================== */
+    // close modal clicking outside
+    window.onclick = function(ev) {
+      const modal = document.getElementById('eventModal');
+      if (ev.target === modal) closeModal();
+    };
+
+    function escapeHtml(s) {
+      if (s === undefined || s === null) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    function formatTime(time24) {
+      if (!time24) return '';
+      const [h,m] = time24.split(':');
+      const hh = parseInt(h,10);
+      const ampm = hh >= 12 ? 'PM' : 'AM';
+      const h12 = hh % 12 || 12;
+      return `${h12}:${m} ${ampm}`;
+    }
+
+    // init
+    loadEvents();
+    renderCalendar();
+    updateStats();
+
+    // expose for debugging if needed
+    window.events = events;
+    window.saveEvents = saveEvents;
+  </script>
+</body>
+</html>
